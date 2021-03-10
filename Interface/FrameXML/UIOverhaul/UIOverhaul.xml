@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
+    <!-- Default frame to refister and laod stuff -->
+    <Frame name="UIOverhaulDefaultFrame">
+        <Scripts>
+            <OnLoad>
+                <!-- Enable instant quest text --> 
+                QUEST_FADING_ENABLE = nil; 
+            </OnLoad>
+        </Scripts>
+    </Frame>
+    
+    <!-- Adds the button seen in later versions that opened the Talent window -->
+    <Button name="TalentsMicroButton" inherits="MainMenuBarMicroButton" parent="MainMenuBarArtFrame">
+        <Anchors>
+            <Anchor point="BOTTOMLEFT" relativeTo="MainMenuMicroButton" relativePoint="BOTTOMRIGHT">
+                <Offset>
+                    <AbsDimension x="25" y="0" />
+                </Offset>
+            </Anchor>
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                LoadMicroButtonTextures("Talents");
+                this.tooltipText = MicroButtonTooltipText(TEXT(TALENTS_BUTTON), "TOGGLETALENTS")
+             </OnLoad>
+            <OnClick>
+                ToggleCharacter("TalentTrainerFrame");
+            </OnClick>
+        </Scripts>
+    </Button>
+    
+    <!-- Hides the original Reload UI button that's always visible and creates another one in the main menu -->
+    <Button name="GameMenuButtonReload" inherits="GameMenuButtonTemplate" parent="GameMenuFrame">
+        <Anchors>
+            <Anchor point="TOP" relativeTo="GameMenuButtonContinue" relativePoint="BOTTOM">
+                <Offset>
+                    <AbsDimension x="0" y="-16" />
+                </Offset>
+            </Anchor>
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                if ReloadButton then
+                    ReloadButton:Hide(); 
+                end
+                this:SetText("Reload UI");
+            </OnLoad>
+            <OnClick>
+                ReloadUI(); 
+                HideUIPanel(GameMenuFrame);
+            </OnClick>
+        </Scripts>
+    </Button>
+    
+    <!-- Adds a button to open all bags -->
+    <Button name="OpenBagsButton" parent="UIParent" enableMouse="true" movable="false" hidden="false">
+        <Size>
+            <AbsDimension x="33" y="33" />
+        </Size>
+        <Anchors>
+            <Anchor point="BOTTOMRIGHT" />
+        </Anchors>
+        <Layers>
+            <Layer level="HIGH">
+                <Texture name="OpenBagsButton_Icon" file="Interface\Icons\INV_Misc_Bag_11">
+                    <Size>
+                        <AbsDimension x="21" y="21" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="7" y="-6" />
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <HighlightTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight">
+            <Size>
+                <AbsDimension x="21" y="21" />
+            </Size>
+            <Anchors>
+                <Anchor point="TOPLEFT">
+                    <Offset>
+                        <AbsDimension x="7" y="-6" />
+                    </Offset>
+                </Anchor>
+            </Anchors>
+        </HighlightTexture>
+        <Scripts>
+            <OnLoad>
+                this:RegisterForClicks("LeftButtonUp");
+            </OnLoad>
+            <OnClick>
+                OpenAllBags();
+            </OnClick>
+            <OnEnter>
+                GameTooltip:SetOwner(this, "ANCHOR_LEFT"); 
+                GameTooltip:AddLine("Open all bags"); 
+                GameTooltip:AddLine("Click to open or close all bags"); 
+                GameTooltip:Show();
+            </OnEnter>
+            <OnLeave>
+                GameTooltip:Hide();
+            </OnLeave>
+        </Scripts>
+    </Button>
+</Ui>
+
