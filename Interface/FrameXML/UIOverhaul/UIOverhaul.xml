@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
-    <!-- Default frame to register and load stuff -->
+    <Script file="UIOverhaul.lua" />
+    
+    <!-- Default frame to refister and laod stuff -->
     <Frame name="UIOverhaulDefaultFrame">
         <Scripts>
             <OnLoad>
+                <!-- Show welcome message -->
+                UIPrintWelcomeMessage();
                 <!-- Enable instant quest text --> 
                 QUEST_FADING_ENABLE = nil; 
             </OnLoad>
@@ -98,8 +102,8 @@
             </OnClick>
             <OnEnter>
                 GameTooltip:SetOwner(this, "ANCHOR_LEFT"); 
-                GameTooltip:AddLine("Open all bags"); 
-                GameTooltip:AddLine("Click to open or close all bags"); 
+                GameTooltip:AddLine(UIColorize("Open Bags", HIGHLIGHT_FONT_COLOR_CODE) .. " (ALT-B)"); 
+                GameTooltip:AddLine("Click to open or close all bags."); 
                 GameTooltip:Show();
             </OnEnter>
             <OnLeave>
