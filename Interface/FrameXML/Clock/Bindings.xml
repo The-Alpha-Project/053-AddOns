@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="TOGGLECLOCK"> <!-- Toggle the Clock window -->
+		ToggleClock();
+	</Binding>
+</Bindings>
