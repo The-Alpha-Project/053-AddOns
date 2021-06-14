@@ -1,0 +1,125 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
+	<Script file="TutorialExtend.lua"/>
+	<Frame name="TutorialFrameTest" toplevel="true" parent="UIParent" movable="true" enableMouse="true" frameStrata="HIGH" hidden="true">
+		<Size>
+			<AbsDimension x="280" y="128"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOP">
+				<Offset>
+					<AbsDimension x="0" y="-60"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<TitleRegion setAllPoints="true"/>
+		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\TutorialFrame\TutorialFrameBorder" tile="true">
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<BackgroundInsets>
+				<AbsInset left="8" right="5" top="3" bottom="5"/>
+			</BackgroundInsets>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="TutorialFrameTitle" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="260" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-3"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="TutorialFrameText" inherits="GameFontHighlight" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="260" y="0"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="16" y="-28"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<CheckButton name="TutorialFrameCheckButton" inherits="OptionsCheckButtonTemplate">
+				<Size>
+					<AbsDimension x="24" y="24"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="10" y="5"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString name="TutorialFrameCheckboxText" inherits="GameFontNormalSmall" text="CLEAR_TUTORIAL_TEXT">
+							<Size>
+								<AbsDimension x="0" y="0"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT">
+									<Offset>
+										<AbsDimension x="0" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</CheckButton>
+			<Button name="TutorialFrameCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="2" y="3"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				InitializeTutorials();		
+			</OnLoad>
+			<OnShow>
+				TutorialFrame_OnShow();
+			</OnShow>
+			<OnHide>
+				TutorialFrame_OnHide();
+			</OnHide>
+		</Scripts>	
+	</Frame>
+	<Button name="TutorialFrameQuestionMarkButton" parent="UIParent" hidden="true">
+		<Size>
+			<AbsDimension x="64" y="64"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="0" y="50"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				ShowUIPanel(TutorialFrame);
+				UIFrameFlashRemoveFrame(this);
+				this:Hide();
+			</OnClick>
+		</Scripts>
+		<NormalTexture file="Interface\TutorialFrame\TutorialFrame-QuestionMark" alphaMode="ADD"/>
+	</Button>
+</Ui>
