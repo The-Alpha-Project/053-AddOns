@@ -92,7 +92,7 @@
 		</Frames>
 		<Scripts>
 		    <OnLoad>
-                this:RegisterEvent("PLAYER_ENTERING_WORLD");
+				TutorialExtend_OnLoad();
             </OnLoad>
             <OnShow>
                 TutorialFrame_OnShow();
@@ -101,7 +101,7 @@
                 TutorialFrame_OnHide();
             </OnHide>
             <OnEvent>
-                InitializeTutorials();
+                TutorialExtend_OnEvent();
             </OnEvent>
 		</Scripts>	
 	</Frame>

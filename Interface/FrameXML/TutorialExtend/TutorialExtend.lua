@@ -1,3 +1,6 @@
+local TotalTimePlayed = 0;
+local IgnoreEvents = false
+
 tutorial_text = {
 	"Questgivers have exclamation marks over their heads.  Talk to questgivers by moving close to them and right clicking on them..",
 	"You can move with the ASDW keys, with the arrow keys or by holding down both the left and right mouse buttons.",
@@ -19,7 +22,8 @@ tutorial_text = {
 	"You can invite another player to your group by right clicking on their portrait and selecting the Invite option from the popup menu.",
 }
 
-TUTORIAL_ITEMS = "An item went into your backpack. You can click on the backpack button in the lower right part of the screen to open your backpack.  Move the mouse over the item to see what it is.";
+-- Might be able to trigger this by hooking to some inventory event later on.
+-- TUTORIAL_ITEMS = "An item went into your backpack. You can click on the backpack button in the lower right part of the screen to open your backpack.  Move the mouse over the item to see what it is.";
 
 tutorial_tittle = {
 	"Questgivers",
@@ -44,8 +48,32 @@ tutorial_tittle = {
 
 TUTORIALFRAME_QUEUE = {};
 
+function TutorialExtend_OnLoad()
+	local currXP = UnitXP("player");
+	-- Only hook to events if experience equals 0 (New Player)
+	if( currXP == 0 ) then
+		this:RegisterEvent("TIME_PLAYED_MSG");
+		this:RegisterEvent("PLAYER_ENTERING_WORLD");
+	end
+end
+
+function TutorialExtend_OnEvent()
+	-- On entering world, request time played, which will later trigger 'TIME_PLAYED_MSG'
+	if( event == "PLAYER_ENTERING_WORLD" ) then
+		RequestTimePlayed();
+	end
+	
+	if( event == "TIME_PLAYED_MSG" ) then
+		TotalTimePlayed = floor(arg1);
+		-- Check if TotalTimePlayed is less than 5 seconds.
+		if( TotalTimePlayed < 5 ) then
+			InitializeTutorials();
+		end
+	end
+end
+
 function InitializeTutorials()
-	-- Only display tutorials if experience equals 0 (New Player)
+	
 	local currXP = UnitXP("player");
 	if currXP == 0 then
 		for i=1, 18 do
