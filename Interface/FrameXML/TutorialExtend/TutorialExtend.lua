@@ -1,5 +1,4 @@
 local TotalTimePlayed = 0;
-local IgnoreEvents = false
 
 function TutorialExtend_OnLoad()
 	local currXP = UnitXP("player");
