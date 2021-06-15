@@ -91,15 +91,18 @@
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnLoad>
-				InitializeTutorials();		
-			</OnLoad>
-			<OnShow>
-				TutorialFrame_OnShow();
-			</OnShow>
-			<OnHide>
-				TutorialFrame_OnHide();
-			</OnHide>
+		    <OnLoad>
+                this:RegisterEvent("PLAYER_ENTERING_WORLD");
+            </OnLoad>
+            <OnShow>
+                TutorialFrame_OnShow();
+            </OnShow>
+            <OnHide>
+                TutorialFrame_OnHide();
+            </OnHide>
+            <OnEvent>
+                InitializeTutorials();
+            </OnEvent>
 		</Scripts>	
 	</Frame>
 	<Button name="TutorialFrameQuestionMarkButton" parent="UIParent" hidden="true">
