@@ -45,8 +45,12 @@ tutorial_tittle = {
 TUTORIALFRAME_QUEUE = {};
 
 function InitializeTutorials()
-	for i=1, 18 do
-		TutorialFrame_NewTutorial(i);
+	-- Only display tutorials if experience equals 0 (New Player)
+	local currXP = UnitXP("player");
+	if currXP == 0 then
+		for i=1, 18 do
+			TutorialFrame_NewTutorial(i);
+		end
 	end
 end
 
