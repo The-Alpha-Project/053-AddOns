@@ -9,6 +9,6 @@
             <OnEvent>
                 TutorialExtend_OnEvent();
             </OnEvent>
-		</Scripts>	
-	</Frame>
+        </Scripts>    
+    </Frame>
 </Ui>
