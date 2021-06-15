@@ -1,10 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
-	<Script file="TutorialExtend.lua"/>
-	<Script file="TutorialFrame.lua"/>
-	<Frame name="TutorialFrameExtended" toplevel="true" parent="UIParent" movable="true" enableMouse="true" frameStrata="HIGH" hidden="true">
-		<Scripts>
-		    <OnLoad>
-				TutorialExtend_OnLoad();
+    <Script file="TutorialExtend.lua"/>
+    <Script file="TutorialFrame.lua"/>
+    <Frame name="TutorialFrameExtended" toplevel="true" parent="UIParent" movable="true" enableMouse="true" frameStrata="HIGH" hidden="true">
+        <Scripts>
+            <OnLoad>
+                TutorialExtend_OnLoad();
             </OnLoad>
             <OnEvent>
                 TutorialExtend_OnEvent();
