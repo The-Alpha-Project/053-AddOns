@@ -85,5 +85,7 @@ Interface\FrameXML\PetitionFrame.xml
 
 #Interface\FrameXML\Clock\CosmosTooltip.xml
 #Interface\FrameXML\Clock\Clock.xml
+
 #Interface\FrameXML\TutorialExtend\TutorialExtend.xml
+
 #Interface\FrameXML\TargetDistance\TargetDistance.xml
