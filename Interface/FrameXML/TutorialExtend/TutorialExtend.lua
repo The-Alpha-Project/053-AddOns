@@ -81,35 +81,3 @@ function InitializeTutorials()
 		end
 	end
 end
-
-function TutorialFrame_OnHide()
-	tremove(TUTORIALFRAME_QUEUE, 1);
-	if ( TutorialFrameCheckButton:GetChecked() ) then
-		ClearTutorials();
-		TutorialFrameQuestionMarkButton:Hide();
-		return;
-	end
-	if ( getn(TUTORIALFRAME_QUEUE) > 0 ) then
-		TutorialFrame_FlashQuestionMark();
-	else
-		TutorialFrameQuestionMarkButton:Hide();
-	end
-end
-
-function TutorialFrame_OnShow()
-	local currentTutorial = TUTORIALFRAME_QUEUE[1];
-	local title = tutorial_tittle[currentTutorial];
-	local text = tutorial_text[currentTutorial];
-	TutorialFrameTitle:SetText(title);
-	TutorialFrameText:SetText(text);
-end
-
-function TutorialFrame_NewTutorial(tutorialID)
-	tinsert(TUTORIALFRAME_QUEUE,tutorialID);
-	TutorialFrame_FlashQuestionMark();
-end
-
-function TutorialFrame_FlashQuestionMark()
-	TutorialFrameQuestionMarkButton:Show();
-	UIFrameFlash(TutorialFrameQuestionMarkButton, 0.75, 0.75, 10, 1)
-end
