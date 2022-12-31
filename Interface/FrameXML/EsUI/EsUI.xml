@@ -1,0 +1,537 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="EsUI_Init.lua"/>
+
+	<Script file="EsUI_Locale_enUS.lua"/>
+
+	<Script file="EsUI_API.lua"/>
+	<Script file="EsUI_Constants.lua"/>
+
+	<Script file="EsUI_Config.lua"/>
+	<Script file="EsUI_Functions.lua"/>
+	<Script file="EsUI_EventFrame.lua"/>
+	<Script file="EsUI_WTF.lua"/>
+
+	<Script file="EsUI_PixelPerfect.lua"/>
+	<Script file="EsUI_Viewport.lua"/>
+
+	<Script file="EsUI_ActionBars.lua"/>
+	<Script file="EsUI_Auras.lua"/>
+	<Script file="EsUI_Chat.lua"/>
+	<Script file="EsUI_Minimap.lua"/>
+	<Script file="EsUI_Nameplates.lua"/>
+	<Script file="EsUI_Tooltips.lua"/>
+	<Script file="EsUI_UnitFrames.lua"/>
+
+	<Script file="EsUI_SlashCommands.lua"/>
+
+	<!-- Generic Event Frame -->
+	<Frame name="EsUIEventFrame">
+		<Scripts>
+			<OnLoad>
+				EsUIEventFrame_OnLoad()
+			</OnLoad>
+			<OnEvent>
+				EsUIEventFrame_OnEvent(event)
+			</OnEvent>
+		</Scripts>
+	</Frame>
+
+	<!-- Aura Durations -->
+	<FontString name="BuffButtonDurationTemplate" inherits="GameFontNormalSmall" virtual="true">
+		<Anchors>
+			<Anchor point="TOP"/>
+		</Anchors>
+	</FontString>
+	<Frame name="EsUIBuffFrame" parent="UIParent" frameStrata="LOW" toplevel="true">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="BuffButton0Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton1Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton2Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton3Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton4Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton5Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton6Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton7Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton8Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton9Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton10Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton11Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton12Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton13Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton14Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton15Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton16Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton17Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton18Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton19Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton20Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton21Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton22Duration" inherits="BuffButtonDurationTemplate"/>
+				<FontString name="BuffButton23Duration" inherits="BuffButtonDurationTemplate"/>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				EsUIBuffFrame_OnLoad()
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<!-- Target Unit Frame Status Text / Auras-->
+	<Button name="TargetDebuffButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="27" y="27"/>
+		</Size>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentIcon" setAllPoints="true"/>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="$parentBorder" file="Interface\Buttons\UI-Debuff-Border">
+					<Size>
+						<AbsDimension x="29" y="29"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Model name="$parentCooldown" scale="0.6375" inherits="CooldownFrameTemplate"/>
+		</Frames>
+		<Scripts>
+			<OnEnter>
+				GameTooltip:SetOwner(this, "ANCHOR_BOTTOMLEFT")
+				GameTooltip:SetText(this.tooltip and this.tooltip() or "")
+				this.updateTooltip = TOOLTIP_UPDATE_TIME
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide()
+				this.updateTooltip = nil
+			</OnLeave>
+			<OnUpdate>
+				TargetDebuffButtonTemplate_OnUpdate(arg1)
+			</OnUpdate>
+		</Scripts>
+	</Button>
+	<Button name="EsUITargetFrame" frameStrata="LOW" toplevel="true" movable="true" parent="TargetFrame">
+		<Size>
+			<AbsDimension x="192" y="77"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER">
+				<Offset>
+					<AbsDimension x="0" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<HitRectInsets>
+			<AbsInset left="6" right="96" top="4" bottom="9"/>
+		</HitRectInsets>
+		<Frames>
+			<Frame setAllPoints="true">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString name="TargetFrameHealthBarText" inherits="TextStatusBarText">
+							<Anchors>
+								<Anchor point="CENTER" relativePoint="TOPLEFT">
+									<Offset>
+										<AbsDimension x="62" y="-40"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+						<FontString name="TargetFrameManaBarText" inherits="TextStatusBarText">
+							<Anchors>
+								<Anchor point="CENTER" relativePoint="TOPLEFT">
+									<Offset>
+										<AbsDimension x="62" y="-51"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Button name="TargetFrameDebuff1" inherits="TargetDebuffButtonTemplate" id="1">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="4" y="15"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff2" inherits="TargetDebuffButtonTemplate" id="2">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff1" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff3" inherits="TargetDebuffButtonTemplate" id="3">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff2" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff4" inherits="TargetDebuffButtonTemplate" id="4">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff3" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff5" inherits="TargetDebuffButtonTemplate" id="5">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="TargetFrameDebuff1" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-3"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff6" inherits="TargetDebuffButtonTemplate" id="6">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff5" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff7" inherits="TargetDebuffButtonTemplate" id="7">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff6" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff8" inherits="TargetDebuffButtonTemplate" id="8">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff7" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff9" inherits="TargetDebuffButtonTemplate" id="9">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="TargetFrameDebuff5" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-3"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff10" inherits="TargetDebuffButtonTemplate" id="10">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff9" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff11" inherits="TargetDebuffButtonTemplate" id="11">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff10" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff12" inherits="TargetDebuffButtonTemplate" id="12">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff11" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff13" inherits="TargetDebuffButtonTemplate" id="13">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="TargetFrameDebuff9" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-3"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff14" inherits="TargetDebuffButtonTemplate" id="14">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff13" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff15" inherits="TargetDebuffButtonTemplate" id="15">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff14" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="TargetFrameDebuff16" inherits="TargetDebuffButtonTemplate" id="16">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="TargetFrameDebuff15" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="3" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				UnitFrame_Initialize("target", TargetName, TargetPortrait,
+									TargetFrameHealthBar, TargetFrameHealthBarText,
+									TargetFrameManaBar, TargetFrameManaBarText)
+				TargetFrame_OnLoad()
+				this:Show()
+			</OnLoad>
+		</Scripts>
+	</Button>
+
+	<!-- Minimap Mousewheel Scroll -->
+	<Frame name="EsUIMinimapCluster" setAllPoints="true" frameStrata="BACKGROUND" parent="Minimap">
+		<Size>
+			<AbsDimension x="140" y="140"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER">
+				<Offset>
+					<AbsDimension x="0" y="4"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnMouseWheel>
+				if arg1 > 0 and Minimap:GetZoom() ~= (Minimap:GetZoomLevels() - 1) then
+					Minimap:SetZoom(Minimap:GetZoom() + 1)
+				elseif not (arg1 > 0) and Minimap:GetZoom() ~= 0 then
+					Minimap:SetZoom(Minimap:GetZoom() - 1)
+				end
+			</OnMouseWheel>
+		</Scripts>
+	</Frame>
+
+	<!-- TimeManager -->
+	<Frame name="TimeManagerFrame" toplevel="true" parent="UIParent" movable="true" frameStrata="DIALOG" hidden="true">
+		<Frames>
+			<Button name="TimeManagerClockButton" parent="Minimap">
+				<Size>
+					<AbsDimension x="51" y="24"/>
+				</Size>
+				<Anchors>
+					<Anchor point="CENTER">
+						<Offset>
+							<AbsDimension x="0" y="-68"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BORDER">
+						<Texture file="Interface\FrameXML\EsUI\Media\ClockBackground" setAllPoints="true">
+							<TexCoords left="0.015625" right="0.8125" top="0.015625" bottom="0.390625"/>
+						</Texture>
+					</Layer>
+					<Layer level="ARTWORK">
+						<FontString name="TimeManagerClockTicker" inherits="GameFontHighlightSmall">
+							<Anchors>
+								<Anchor point="CENTER">
+									<Offset>
+										<AbsDimension x="1" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						TimeManagerClockButton_OnLoad()
+					</OnLoad>
+					<OnEnter>
+						<!-- TimeManagerClockButton_OnEnter() -->
+					</OnEnter>
+					<OnLeave>
+						<!-- TimeManagerClockButton_OnLeave() -->
+					</OnLeave>
+					<OnUpdate>
+						TimeManagerClockButton_OnUpdate(elapsed)
+					</OnUpdate>
+					<OnClick>
+						<!-- TimeManagerClockButton_OnClick() -->
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+	<!-- Chat Copy Frame -->
+	<Frame name="EsUIChatCopyFrame" toplevel="true" frameStrata="DIALOG" movable="true" enableMouse="true" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="540" y="300"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER">
+				<Offset>
+					<AbsDimension x="0" y="100"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="Chat Copy">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentHeader">
+							<Offset>
+								<AbsDimension x="0" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="CENTER" relativeTo="$parent" relativePoint="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-24" y="-24"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="486" y="252"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent">
+						<Offset>
+							<AbsDimension x="16" y="-36"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<ScrollChild>
+					<EditBox name="$parentEditBox" multiLine="true">
+						<Size>
+							<AbsDimension x="500" y="300"/>
+						</Size>
+						<Scripts>
+							<OnShow>
+								this:SetText(ESUI_CHAT_COPY_CONTENTS)
+							</OnShow>
+							<OnTextChanged>
+								local scrollBar = getglobal(this:GetParent():GetName() .. "ScrollBar")
+								this:GetParent():UpdateScrollChildRect()
+								local min, max = scrollBar:GetMinMaxValues()
+								if max > 0 and this.max ~= max then
+									this.max = max
+									scrollBar:SetValue(max)
+								end
+							</OnTextChanged>
+							<OnEscapePressed>
+								EsUIChatCopyFrame:Hide()
+							</OnEscapePressed>
+						</Scripts>
+						<FontString inherits="ChatFontNormal"/>
+					</EditBox>
+				</ScrollChild>
+			</ScrollFrame>
+		</Frames>
+	</Frame>
+
+	<!-- ChatFrameCopyButton -->
+	<Button name="ChatFrameCopyButton" frameStrata="LOW">
+		<Size>
+			<AbsDimension x="18" y="18"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM" relativeTo="ChatFrameMenuButton" relativePoint="TOP"/>
+		</Anchors>
+		<Scripts>
+			<OnClick>
+				if EsUIChatCopyFrame:IsVisible() then
+					HideUIPanel(EsUIChatCopyFrame)
+				else
+					ShowUIPanel(EsUIChatCopyFrame)
+				end
+			</OnClick>
+		</Scripts>
+		<NormalTexture file="Interface\Minimap\UI-Minimap-ZoomInButton-Up"/>
+		<PushedTexture file="Interface\Minimap\UI-Minimap-ZoomInButton-Down"/>
+		<DisabledTexture file="Interface\Minimap\UI-Minimap-ZoomInButton-Disabled"/>
+		<HighlightTexture file="Interface\Minimap\UI-Minimap-ZoomButton-Highlight" alphaMode="ADD"/>
+	</Button>
+
+	<!-- Add TalentMicroButton -->
+	<Button name="TalentMicroButton" inherits="MainMenuBarMicroButton" parent="MainMenuBarArtFrame">
+		<Anchors>
+			<Anchor point="BOTTOMLEFT" relativeTo="SpellbookMicroButton" relativePoint="BOTTOMRIGHT">
+				<Offset>
+					<AbsDimension x="-2" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+				LoadMicroButtonTextures("Talents")
+				this.tooltipText = MicroButtonTooltipText(TEXT(TALENTS_BUTTON), "TOGGLETALENTS")
+			</OnLoad>
+			<OnClick>
+				ToggleCharacter("TalentTrainerFrame")
+			</OnClick>
+			<OnEvent>
+				this.tooltipText = MicroButtonTooltipText(TEXT(TALENTS_BUTTON), "TOGGLETALENTS")
+			</OnEvent>
+		</Scripts>
+	</Button>
+</Ui>

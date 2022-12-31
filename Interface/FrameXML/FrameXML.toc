@@ -81,6 +81,9 @@ Interface\FrameXML\PetitionFrame.xml
 
 # Custom AddOns, add them here (add # to unload, remove it to load)
 
+Interface\FrameXML\EsUI\EsUI.xml
+Interface\FrameXML\EsUI\EsUI_Bindings.xml
+
 #Interface\FrameXML\UIOverhaul\UIOverhaul.xml
 
 #Interface\FrameXML\Clock\CosmosTooltip.xml
