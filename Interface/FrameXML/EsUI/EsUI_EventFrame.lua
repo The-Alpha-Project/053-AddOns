@@ -59,6 +59,13 @@ function EsUIEventFrame_OnEvent(event)
 		QuestLogMicroButton:ClearAllPoints()
 		QuestLogMicroButton:SetPoint("BOTTOMLEFT", "TalentMicroButton", "BOTTOMRIGHT", -2, 0)
 
+		-- Play nice with other AddOns
+		if TalentsMicroButton then TalentsMicroButton:Hide() end
+		if TargetDistanceFrame then
+			TargetDistanceFrame:ClearAllPoints()
+			TargetDistanceFrame:SetPoint("TOP", "TargetFrame", "TOP", -34, 24)
+		end
+
 		return
 	end
 
