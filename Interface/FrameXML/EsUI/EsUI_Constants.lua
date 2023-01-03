@@ -61,6 +61,17 @@ SECOND_ONELETTER_ABBR = "%d s"
 
 MAX_TARGET_DEBUFFS = 16
 
+MICRO_BUTTONS = {
+	"CharacterMicroButton",
+	"SpellbookMicroButton",
+	"TalentMicroButton",
+	"QuestLogMicroButton",
+	"SocialsMicroButton",
+	"WorldMapMicroButton",
+	"MainMenuMicroButton",
+	"BugsMicroButton",
+}
+
 function RefreshEsUIVariables()
 	EsUI.Name = UnitName("player")
 	EsUI.Gender = UnitSex("player") == 0 and MALE or FEMALE

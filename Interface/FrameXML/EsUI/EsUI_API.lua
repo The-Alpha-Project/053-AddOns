@@ -207,7 +207,7 @@ if not SecondsToTimeAbbrev then
 end
 
 ----------------------------------------------------------------------------------------
---	UnitBuff / UnitDebuff / UnitAura
+--	UnitBuff / UnitDebuff / UnitAura -- TODO: Finish this
 ----------------------------------------------------------------------------------------
 if not UnitBuff then
 	function UnitBuff(unit, buffIndex, castable)

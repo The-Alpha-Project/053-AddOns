@@ -78,7 +78,7 @@ ChatFrame_OnEvent = function(event)
 		elseif arg1 then
 			-- Hide addon messages
 			if strsub(event, 1, 16) == "CHAT_MSG_CHANNEL" then
-				if arg4 and strfind(arg4, "Addonauras") then
+				if arg4 and strfind(arg4, "_addonauras") then
 					return
 				end
 			end

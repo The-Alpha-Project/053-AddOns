@@ -42,22 +42,32 @@ local playerLosesAura = gsub(format(AURAREMOVEDSELF, ""), "%.", "")
 function EsUIEventFrame_OnEvent(event)
 	-- Setup
 	if event == "PLAYER_ENTERING_WORLD" then
+		-- Setup
 		RefreshEsUIVariables()
-
-		if tonumber(EsUI.GameBuild) < 3494 and EsUI.C.UnitFrames.track_auras then
-			EsUI.QueryServerForAuraInformation()
-		end
-
-		print("|cffffff00" .. EsUI.L.WELCOME .. EsUI.Version .. ", " .. EsUI.Name .. ".|r")
-
-		if EsUI.C.Quests.instant_quest_text then
-			QUEST_FADING_ENABLE = nil
-			QuestFrameDetailPanel.fadingProgress = 1024
-		end
 
 		-- Reposition QuestLogMicroButton because of the addition of TalentMicroButton
 		QuestLogMicroButton:ClearAllPoints()
 		QuestLogMicroButton:SetPoint("BOTTOMLEFT", "TalentMicroButton", "BOTTOMRIGHT", -2, 0)
+
+		-- ActionBars setup
+		if EsUI.C.ActionBars.alternative_style then
+			EsUI.MoveActionBars()
+			EsUI.MoveMicroButtons()
+		end
+
+		-- Join channel for aura tracking if we're not already in it
+		if tonumber(EsUI.GameBuild) < 3494 and EsUI.C.UnitFrames.track_auras then
+			EsUI.QueryServerForAuraInformation()
+		end
+
+		-- Welcome message
+		print("|cffffff00" .. EsUI.L.WELCOME .. EsUI.Version .. ", " .. EsUI.Name .. ".|r")
+
+		-- Instant quest text
+		if EsUI.C.Quests.instant_quest_text then
+			QUEST_FADING_ENABLE = nil
+			QuestFrameDetailPanel.fadingProgress = 1024
+		end
 
 		-- Play nice with other AddOns
 		if TalentsMicroButton then TalentsMicroButton:Hide() end
@@ -76,7 +86,7 @@ function EsUIEventFrame_OnEvent(event)
 	if event == "CHAT_MSG_CHANNEL" then
 		local msg, sender, language, channel, receiver, playerFlag = arg1, arg2, arg3, arg4, arg5, arg6
 
-		if msg and channel and strfind(channel, "Addonauras") then
+		if msg and channel and strfind(channel, "_addonauras") then
 			if strsub(msg, 1, 2) == "-2" then -- NO_DATA
 				local error, unitID = strsplit(", ", msg) -- Space needed here for now
 				EsUI.AuraInfo.units[unitID] = {
@@ -178,9 +188,11 @@ function EsUIEventFrame_OnEvent(event)
 					spell = gsub(gsub(arg1, playerLosesAura, ""), "%.", "")
 				end
 
-				EsUI.QueryServerForAuraInformation("player")
-				if spell and UnitIsUnit("target", "player") then
-					EsUI.QueryServerForAuraInformation("target")
+				if spell then
+					EsUI.QueryServerForAuraInformation("player")
+					if UnitIsUnit("target", "player") then
+						EsUI.QueryServerForAuraInformation("target")
+					end
 				end
 				return
 			elseif type == "PARTY" then

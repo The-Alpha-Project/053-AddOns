@@ -534,4 +534,157 @@
 			</OnEvent>
 		</Scripts>
 	</Button>
+
+	<!-- ActionBar Art Frames -->
+	<Frame name="ActionBarArt" frameStrata="MEDIUM" parent="UIParent">
+		<Size>
+			<AbsDimension x="552" y="128"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="0" y="-2"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentTexture0" file="Interface\FrameXML\EsUI\Media\ActionBarArt">
+					<Size>
+						<AbsDimension x="256" y="65"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="-148" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="1.0" top="0.74609375" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentTexture1" file="Interface\FrameXML\EsUI\Media\ActionBarArt">
+					<Size>
+						<AbsDimension x="258" y="65"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="108" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="1.0" top="0.4921875" bottom="0.74609375"/>
+				</Texture>
+				<Texture name="$parentTexture2" file="Interface\FrameXML\EsUI\Media\ActionBarArt">
+					<Size>
+						<AbsDimension x="256" y="65"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="364" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="1.0" top="0.23828125" bottom="0.4921875"/>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="XPBarBackground" parent="MainMenuBar" frameStrata="LOW" hidden="true">
+		<Size>
+			<AbsDimension x="798" y="10"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="-111" y="-11"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentTexture" file="Interface\Tooltips\UI-Tooltip-Background" setAllPoints="true">
+					<Color r="0" g="0" b="0" a="0.75" />
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="MicroMenuArt" parent="CharacterMicroButton" frameStrata="BACKGROUND" hidden="true">
+		<Size>
+			<AbsDimension x="512" y="128"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="-42" y="-4"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentTexture" file="Interface\FrameXML\EsUI\Media\MicroMenuArt" />
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!--
+	<Frame name="ActionBarArt" frameStrata="MEDIUM" parent="UIParent">
+		<Size>
+			<AbsDimension x="1024" y="256"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="0" y="11"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentTexture" file="Interface\FrameXML\EsUI\Media\ActionBarArt">
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="XPBarBackground" parent="MainMenuBar" frameStrata="LOW" hidden="true">
+		<Size>
+			<AbsDimension x="552" y="16"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="-111" y="-11"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentTexture" file="Interface\FrameXML\EsUI\Media\ActionBarArt" setAllPoints="true">
+					<TexCoords left="0.0009765625" right="0.5400390625" top="0.73828125" bottom="0.80078125"/>
+					<Color r="0" g="0" b="0" a="0.75" />
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	<Frame name="MicroMenuArt" parent="CharacterMicroButton" frameStrata="BACKGROUND" hidden="true">
+		<Size>
+			<AbsDimension x="297" y="87"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM">
+				<Offset>
+					<AbsDimension x="-42" y="-4"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentTexture" file="Interface\FrameXML\EsUI\Media\ActionBarArt">
+					<TexCoords left="0.7099609375" right="1.0" top="0.66015625" bottom="1.0"/>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	-->
 </Ui>

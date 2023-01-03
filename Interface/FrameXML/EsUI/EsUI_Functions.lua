@@ -29,9 +29,9 @@ local validUnits = {
 
 function EsUI.QueryServerForAuraInformation(unit)
 	-- devw4r ChatAddonManager: Request Aura Information
-	local channelNum = GetChannelName("Addonauras")
+	local channelNum = GetChannelName("_addonauras")
 	if channelNum <= 0 then
-		JoinChannelByName("Addonauras", "tP4hSCpd8vWaun")
+		JoinChannelByName("_addonauras", "tP4hSCpd8vWaun")
 	else
 		if unit and validUnits[unit] then
 			SendChatMessage("getunitauras " .. unit, "CHANNEL", nil, channelNum)
@@ -1792,6 +1792,16 @@ function EsUI.GetSpellDescription(name)
 	local info = spellInformation[name]
 	local description = info and info[5]
 
+	--[[
+	$a = radius
+	$d = duration
+	$g = gender
+	$m = ???
+	$o = ???
+	$s = ???
+	$t = ???
+	--]]
+
 	-- TODO: Handle amounts later
 	if description then
 		local duration = EsUI.DurationText(info[2] / 1000 or 0)
@@ -1800,6 +1810,36 @@ function EsUI.GetSpellDescription(name)
 	end
 
 	return description
+end
+
+function EsUI.DragFrame(frame)
+	if not frame or not getglobal(frame) then return end
+	local x, y = GetCursorPosition()
+	local fWidth, fHeight = frame:GetWidth(), frame:GetHeight()
+	-- TODO: Need to create our own GetPoint or otherwise set position info on each frame
+
+	--[[
+	OnKeyUp
+	OnKeyDown
+	OnChar
+	OnReceiveDrag
+	OnDragStop
+	OnDragStart
+	OnMouseWheel
+	OnMouseUp
+	OnMouseDown
+	OnLeave
+	OnEnter
+	OnHide
+	OnShow
+	OnUpdate
+	OnEvent
+	OnSizeChanged
+	OnLoad
+	OnHyperlinkClick
+	OnHyperlinkLeave
+	OnHyperlinkEnter
+	--]]
 end
 
 EsUI.AuraInfo = {

@@ -1,4 +1,8 @@
 EsUI.C = {
+	ActionBars = {
+		alternative_style = true,
+		hide_gryphons = false,
+	},
 	Auras = {
 		show_durations = true,
 	},
@@ -24,8 +28,8 @@ EsUI.C = {
 		statusbar_text = true,
 		track_auras = true,
 		reposition = true,
-		x_offset = -280,
-		y_offset = 340,
+		x_offset = -250,
+		y_offset = 320,
 	},
 	Viewport = {
 		top = 0,
