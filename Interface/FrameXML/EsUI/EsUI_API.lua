@@ -5,6 +5,9 @@ if not print then
 	function print(arg)
 		DEFAULT_CHAT_FRAME:AddMessage(arg)
 	end
+	function Print(arg)
+		DEFAULT_CHAT_FRAME:AddMessage(arg)
+	end
 end
 
 ----------------------------------------------------------------------------------------
