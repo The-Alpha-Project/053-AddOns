@@ -5,6 +5,7 @@ EsUI.C = {
 	},
 	Auras = {
 		show_durations = true,
+		blinkWhite = true,
 	},
 	Chat = {
 		profanity_filter = false,
@@ -13,7 +14,7 @@ EsUI.C = {
 		auto_loot = true,
 	},
 	Nameplates = {
-		reverse_display = true,
+		reverse_display = false,
 	},
 	Quests = {
 		instant_quest_text = true,
