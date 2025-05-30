@@ -455,8 +455,10 @@
 		if ( UIParent:IsVisible() ) then
 			CloseAllWindows();
 			UIParent:Hide();
+			ChatFrameCopyButton:Hide()
 		else
 			UIParent:Show();
+			ChatFrameCopyButton:Show()
 		end
 	</Binding>
 	<!-- Camera key bindings -->

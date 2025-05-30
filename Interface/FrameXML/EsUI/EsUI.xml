@@ -536,7 +536,7 @@
 	</Button>
 
 	<!-- ActionBar Art Frames -->
-	<Frame name="ActionBarArt" frameStrata="MEDIUM" parent="UIParent">
+	<Frame name="ActionBarArt" frameStrata="MEDIUM" parent="UIParent" hidden="true">
 		<Size>
 			<AbsDimension x="552" y="128"/>
 		</Size>
