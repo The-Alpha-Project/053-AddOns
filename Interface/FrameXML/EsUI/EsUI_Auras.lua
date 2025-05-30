@@ -46,15 +46,21 @@ BuffButton_OnUpdate = function()
 end
 
 function BuffFrame_UpdateDuration(BuffButton, timeLeft)
+
 	local duration = getglobal(BuffButton:GetName() .. "Duration")
 	if SHOW_BUFF_DURATIONS == "1" and timeLeft then
 		duration:SetText(SecondsToTimeAbbrev(timeLeft))
 		if timeLeft < BUFF_DURATION_WARNING_TIME then
-			duration:SetVertexColor(1.0, 0.82, 0)
+			if EsUI.C.Auras.blinkWhite then 
+				duration:SetVertexColor(1.0, 1.0, 1.0) else
+				duration:SetVertexColor(1.0, 0.82, 0.0)
+			end
 		else
-			duration:SetVertexColor(1.0, 1.0, 1.0)
+			if EsUI.C.Auras.blinkWhite then
+				duration:SetVertexColor(1.0, 0.82, 0.0) else
+				duration:SetVertexColor(1.0, 1.0, 1.0)
+			end
 		end
-
 		duration:Show()
 	else
 		duration:Hide()
