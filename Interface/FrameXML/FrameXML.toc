@@ -92,3 +92,8 @@ Interface\FrameXML\EsUI\EsUI_Bindings.xml
 #Interface\FrameXML\TutorialExtend\TutorialExtend.xml
 
 #Interface\FrameXML\TargetDistance\TargetDistance.xml
+
+#Interface\FrameXML\MacroBook\MacroBook.xml
+#Interface\FrameXML\ExtendedStats\ExtendedStats.xml
+
+# End of Custom AddOn list.

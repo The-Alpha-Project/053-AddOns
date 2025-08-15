@@ -1,0 +1,151 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui">
+  <Script file="MacroBook.lua"/>
+  <Script file="MacroBook_Data.lua"/>
+  <!-- Initialization Frame -->
+  <Frame name="MacroBookInitFrame">
+    <Scripts>
+      <OnLoad>
+        this:RegisterEvent("PLAYER_ENTERING_WORLD");
+        SpellBookFrame.numTabs = 4;
+      </OnLoad>
+      <OnEvent>
+        MacroBook_Init();
+      </OnEvent>
+    </Scripts>
+  </Frame>
+
+  <!-- Macro Tab Button -->
+  <Button name="SpellBookFrameTab4" inherits="SpellBookFrameTabButtonTemplate" parent="SpellBookFrame" id="4">
+  <Size>
+    <AbsDimension x="120" y="64"/>
+  </Size>
+  <Anchors>
+    <Anchor point="TOPLEFT" relativeTo="SpellBookFrame" relativePoint="BOTTOMRIGHT">
+      <Offset><AbsDimension x="-153" y="93"/></Offset>
+    </Anchor>
+  </Anchors>
+
+  <NormalTexture name="$parentNormalTexture" file="Interface\SpellBook\UI-SpellBook-Tab-Unselected"/>
+  <HighlightTexture file="Interface\SpellBook\UI-SpellBookPanel-Tab-Highlight" alphaMode="ADD"/>
+  <Scripts>
+    <OnLoad>
+      this.normal = getglobal(this:GetName().."NormalTexture");
+      this:SetText("MacroBook");
+      this.binding = "DUMMYMACROBOOKKEY"; <!-- Totally fake, never used -->
+      this:Show();
+    </OnLoad>
+    <OnClick>
+      PlaySound("igCharacterInfoTab");
+      MacroBook_SelectTab(this:GetID());
+      if this.normal then
+        this.normal:SetTexture("Interface\\SpellBook\\UI-SpellBook-Tab1-Selected");
+      end
+    </OnClick>
+  </Scripts>
+</Button>
+
+  <!-- Macro Editor Panel -->
+  <Frame name="MacroBookEditorFrame" parent="SpellBookFrame" hidden="true">
+    <Size>
+      <AbsDimension x="220" y="300"/>
+    </Size>
+    <Anchors>
+      <Anchor point="LEFT" relativeTo="SpellBookFrame" relativePoint="RIGHT">
+        <Offset>
+          <AbsDimension x="-25" y="0"/>
+        </Offset>
+      </Anchor>
+    </Anchors>
+    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background"
+              edgeFile="Interface\Tooltips\UI-Tooltip-Border"
+              tile="true" tileSize="16" edgeSize="16"
+              insets="0,0,0,0"/>
+    <Frames>
+
+      <!-- Name Input -->
+      <Frame name="$parentNameWrapper">
+        <Size>
+          <AbsDimension x="180" y="20"/>
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT">
+            <Offset><AbsDimension x="20" y="-20"/></Offset>
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="BACKGROUND">
+            <Texture name="$parentNameWrapperBackground" file="Interface\Tooltips\UI-Tooltip-Background" setAllPoints="true">
+              <Color r="0.1" g="0.1" b="0.1" a="0.8"/>
+            </Texture>
+          </Layer>
+        </Layers>
+        <Frames>
+          <EditBox name="MacroBookEditorFrameNameInput" autoFocus="false" multiline="false">
+            <Size>
+              <AbsDimension x="220" y="20"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPLEFT"/>
+            </Anchors>
+            <FontString inherits="ChatFontNormal"/>
+            <Scripts>
+              <OnEscapePressed>this:ClearFocus();</OnEscapePressed>
+            </Scripts>
+          </EditBox>
+        </Frames>
+      </Frame>
+
+      <!-- Body Input -->
+      <Frame name="$parentBodyWrapper">
+        <Size>
+          <AbsDimension x="180" y="20"/>
+        </Size>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="MacroBookEditorFrameNameInput" relativePoint="BOTTOMLEFT">
+            <Offset><AbsDimension x="0" y="-10"/></Offset>
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="BACKGROUND">
+            <Texture name="$parentBodyWrapperBackground" file="Interface\Tooltips\UI-Tooltip-Background" setAllPoints="true">
+              <Color r="0.1" g="0.1" b="0.1" a="0.8"/>
+            </Texture>
+          </Layer>
+        </Layers>
+        <Frames>
+          <EditBox name="MacroBookEditorFrameBodyInput" autoFocus="false" multiline="false">
+            <Size>
+              <AbsDimension x="220" y="20"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPLEFT"/>
+            </Anchors>
+            <FontString inherits="ChatFontNormal"/>
+            <Scripts>
+              <OnEscapePressed>this:ClearFocus();</OnEscapePressed>
+            </Scripts>
+          </EditBox>
+        </Frames>
+      </Frame>
+
+      <!-- Save Button -->
+      <Button name="$parentSaveButton" inherits="UIPanelButtonTemplate">
+        <Size>
+          <AbsDimension x="100" y="24"/>
+        </Size>
+        <Anchors>
+          <Anchor point="BOTTOMLEFT">
+            <Offset><AbsDimension x="15" y="15"/></Offset>
+          </Anchor>
+        </Anchors>
+        <Text>Save Macro</Text>
+        <Scripts>
+          <OnClick>
+            MacroBook_SaveMacro();
+          </OnClick>
+        </Scripts>
+      </Button>
+
+    </Frames>
+  </Frame>
+</Ui>
