@@ -17,7 +17,7 @@
 -- frames exist, so layout is done on the first OnShow.
 --------------------------------------------------------------------------------
 
-SIMPLEMAP_VERSION = "4.67";
+SIMPLEMAP_VERSION = "4.70";
 SIMPLEMAP_BLACK_TILE = "Interface\\Buttons\\WHITE8X8"; -- tinted black, see SimpleMap_UpdateMap
 SIMPLEMAP_MAP_WIDTH = 1002;          -- stock map size at scale 1
 SIMPLEMAP_MAP_HEIGHT = 668;
@@ -1196,8 +1196,49 @@ function SimpleMap_ShownName()
 	return "";
 end
 
+-- Map pictures and symbols are read from disk the first time they are shown;
+-- doing all of them in one frame made a lag spike (12 map tiles about 60 ms,
+-- new symbols up to 135 ms from a slow disk). A few per frame instead.
+SIMPLEMAP_TILES_PER_FRAME = 3;
+SIMPLEMAP_ICONS_PER_FRAME = 2;
+SimpleMap_TileQueue = {};          -- tile number -> picture still to load
+SimpleMap_IconLoads = 0;           -- new symbol pictures loaded this frame
+SimpleMap_IconFrame = nil;
+SimpleMap_FrameNo = 0;             -- counts SimpleMap_OnUpdate calls (one per frame)
+
+-- 1 while more new symbol pictures may be loaded in this frame.
+function SimpleMap_IconBudget()
+	if ( SimpleMap_IconFrame ~= SimpleMap_FrameNo ) then
+		SimpleMap_IconFrame = SimpleMap_FrameNo;
+		SimpleMap_IconLoads = 0;
+	end
+	if ( SimpleMap_IconLoads >= SIMPLEMAP_ICONS_PER_FRAME ) then
+		return nil;
+	end
+	SimpleMap_IconLoads = SimpleMap_IconLoads + 1;
+	return 1;
+end
+
+function SimpleMap_LoadTiles()
+	local done = 0;
+	local i;
+	for i = 1, SIMPLEMAP_NUM_TILES do
+		if ( SimpleMap_TileQueue[i] ) then
+			if ( done >= SIMPLEMAP_TILES_PER_FRAME ) then
+				SimpleMap_TilesPending = 1;
+				return;
+			end
+			getglobal("SimpleMapTile"..i):SetTexture(SimpleMap_TileQueue[i]);
+			SimpleMap_TileQueue[i] = nil;
+			done = done + 1;
+		end
+	end
+	SimpleMap_TilesPending = nil;
+end
+
 function SimpleMap_UpdateMap()
 	SimpleMap_MapDirty = nil;
+	SimpleMap_TileQueue = {};
 	SimpleMap_ShownKey = SimpleMap_MapKey();
 	local mapFileName = GetMapInfo();
 	local i;
@@ -1241,9 +1282,10 @@ function SimpleMap_UpdateMap()
 			tile:SetTexture(SimpleMap_Dungeon[5]..i);
 		else
 			tile:SetVertexColor(1, 1, 1, 1);
-			tile:SetTexture("Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i);
+			SimpleMap_TileQueue[i] = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i;
 		end
 	end
+	SimpleMap_LoadTiles();
 	SimpleMapHighlight:Hide();
 	if ( GetCurrentMapContinent() == 0 and not SimpleMap_Dungeon ) then
 		SimpleMapZoomOutButton:Disable();
@@ -1444,14 +1486,23 @@ function SimpleMap_UpdateNPCs()
 					SimpleMap_NPCFrames[shown] = marker;
 					SimpleMap_NPCIconFrames[shown] = getglobal("SimpleMapNPC"..shown.."Icon");
 				end
-				-- Texture only when the marker shows another entry than before
+				-- Texture only when the marker shows another entry than before;
+				-- a few new pictures per frame, the rest on the next frames.
 				if ( marker.entry ~= entry ) then
-					SimpleMap_SetNPCIcon(SimpleMap_NPCIconFrames[shown], entry);
-					marker.entry = entry;
+					if ( SimpleMap_IconBudget() ) then
+						SimpleMap_SetNPCIcon(SimpleMap_NPCIconFrames[shown], entry);
+						marker.entry = entry;
+					else
+						SimpleMap_NPCsPending = 1;
+					end
 				end
-				marker:ClearAllPoints();
-				marker:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
-				marker:Show();
+				if ( marker.entry == entry ) then
+					marker:ClearAllPoints();
+					marker:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
+					marker:Show();
+				else
+					marker:Hide();
+				end
 			end
 		end
 	end
@@ -1765,6 +1816,14 @@ function SimpleMap_PlaceUnit(frame, unit)
 end
 
 function SimpleMap_OnUpdate()
+	SimpleMap_FrameNo = SimpleMap_FrameNo + 1;
+	if ( SimpleMap_TilesPending ) then
+		SimpleMap_LoadTiles();
+	end
+	if ( SimpleMap_NPCsPending ) then
+		SimpleMap_NPCsPending = nil;
+		SimpleMap_UpdateNPCs();
+	end
 	if ( SimpleMap_FullscreenPending ) then
 		SimpleMap_ApplyFullscreenSize();
 	end
@@ -2488,6 +2547,20 @@ function SimpleMap_MinimapCoords_OnEvent()
 	if ( event == "CHAT_MSG_SYSTEM" or event == "UI_INFO_MESSAGE" or event == "PLAYER_ALIVE" ) then
 		return;
 	end
+	-- Switching the map to the new zone is done a moment later, not in the
+	-- frame where the client itself loads the new area (the two together
+	-- made one long lag spike).
+	SimpleMap_ZoneCheckTime = GetTime() + SIMPLEMAP_ZONE_CHECK_DELAY;
+end
+
+SIMPLEMAP_ZONE_CHECK_DELAY = 0.5;
+SimpleMap_ZoneCheckTime = nil;
+
+function SimpleMap_ZoneCheck()
+	if ( not SimpleMap_ZoneCheckTime or GetTime() < SimpleMap_ZoneCheckTime ) then
+		return;
+	end
+	SimpleMap_ZoneCheckTime = nil;
 	if ( (SimpleMap_MinimapCoords or SimpleMap_ShowNPCs or SimpleMap_ShowRares) and not SimpleMapFrame:IsVisible() and not SimpleMap_HasPosition() ) then
 		SimpleMap_FindWorldZone();
 	end
@@ -2529,6 +2602,7 @@ function SimpleMap_MinimapCoords_OnUpdate(elapsed)
 		return;
 	end
 	SimpleMap_BindUpdate();
+	SimpleMap_ZoneCheck();
 	SimpleMap_CoordTimer = 0.2;
 	if ( SimpleMap_Mini ) then
 		SimpleMap_MiniUpdate();

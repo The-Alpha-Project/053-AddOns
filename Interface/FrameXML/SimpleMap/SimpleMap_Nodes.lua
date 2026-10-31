@@ -267,9 +267,12 @@ function SimpleMap_NodeUpdate()
 	local list = SimpleMap_NodeList(map);
 	local n = getn(list);
 	if ( list == SimpleMap_NodeList_Shown and n == SimpleMap_NodeCount and SimpleMap_NodeStamp == SimpleMap_NodeSeen
-		and SimpleMap_Zoom == SimpleMap_NodeZoom and SimpleMap_ViewLeft == SimpleMap_NodeLeft and SimpleMap_ViewTop == SimpleMap_NodeTop ) then
+		and SimpleMap_Zoom == SimpleMap_NodeZoom and SimpleMap_ViewLeft == SimpleMap_NodeLeft and SimpleMap_ViewTop == SimpleMap_NodeTop
+		and SimpleMapButton:GetWidth() == SimpleMap_NodeW and SimpleMapButton:GetHeight() == SimpleMap_NodeH ) then
 		return;
 	end
+	-- The map's size changes with small map / normal / full screen.
+	SimpleMap_NodeW, SimpleMap_NodeH = SimpleMapButton:GetWidth(), SimpleMapButton:GetHeight();
 	SimpleMap_NodeList_Shown, SimpleMap_NodeCount, SimpleMap_NodeSeen = list, n, SimpleMap_NodeStamp;
 	SimpleMap_NodeZoom, SimpleMap_NodeLeft, SimpleMap_NodeTop = SimpleMap_Zoom, SimpleMap_ViewLeft, SimpleMap_ViewTop;
 	SimpleMap_NodeShown = 1;
@@ -289,11 +292,17 @@ function SimpleMap_NodeUpdate()
 				button:ClearAllPoints();
 				button:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
 				local key = SimpleMap_NodeIcon(e);
-				if ( button.key ~= key ) then
-					button.key = key;
-					getglobal("SimpleMapNode"..j.."Texture"):SetTexture(SIMPLEMAP_MEDIA.."Node_"..key);
+				if ( button.key ~= key and SimpleMap_IconBudget and not SimpleMap_IconBudget() ) then
+					-- Too many new pictures this frame: this one on the next frame.
+					SimpleMap_NodeSeen = nil;
+					button:Hide();
+				else
+					if ( button.key ~= key ) then
+						button.key = key;
+						getglobal("SimpleMapNode"..j.."Texture"):SetTexture(SIMPLEMAP_MEDIA.."Node_"..key);
+					end
+					button:Show();
 				end
-				button:Show();
 			end
 		end
 	end

@@ -14,7 +14,7 @@
 -- no pairs/ipairs/type, ASCII only.
 --------------------------------------------------------------------------------
 
-SIMPLEQOL_VERSION = "2.98";
+SIMPLEQOL_VERSION = "3.01";
 
 -- Feature list: key, label, default (1 = on), tooltip. Order = check boxes.
 SIMPLEQOL_FEATURES = {
@@ -56,8 +56,9 @@ SIMPLEQOL_FEATURES = {
 	{ "nameplates", "Always show name plates", nil, "Shows name plates all the time, so you do not have to hold V." },
 	{ "shareguild", "Share position (guild)", 1, "Shares your position with your guild only (SimpleQoL users who share too). Not needed when Share position (faction) is on." },
 	{ "clock",     "Show clock", nil, "Shows the time next to FPS and Ping (same place, Shift + drag to move). Not used when AlphaUI's clock is on." },
+	{ "targetdist", "Show target distance", 1, "Shows the distance to your target in yards above its portrait. Replaces AlphaUI's Target Distance, which stays off while SimpleQoL is installed." },
 };
-SIMPLEQOL_NUM_FEATURES = 38;
+SIMPLEQOL_NUM_FEATURES = 39;
 SIMPLEQOL_RESTOCK_ROWS = 3;        -- rows shown; more items scroll
 SimpleQoL_RestockOffset = 0;
 SIMPLEQOL_PCT_MIN = 1;             -- low health percent boxes (Bloodstone, emergency shield)

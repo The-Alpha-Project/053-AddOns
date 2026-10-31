@@ -482,6 +482,7 @@
 	<Script file="SimpleQoL_Prices.lua"/>
 	<Script file="SimpleQoL_Guard.lua"/>
 	<Script file="SimpleQoL_Menu.lua"/>
+	<Script file="SimpleQoL_Distance.lua"/>
 
 	<Frame name="SimpleQoLEventFrame">
 		<Scripts>
@@ -949,7 +950,7 @@
 					<Anchors>
 						<Anchor point="TOPLEFT">
 							<Offset>
-								<AbsDimension x="254" y="-418"/>
+								<AbsDimension x="254" y="-438"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -1879,7 +1880,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="250" y="-436"/>
+							<AbsDimension x="250" y="-456"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -1905,7 +1906,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="250" y="-456"/>
+							<AbsDimension x="250" y="-476"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -1931,7 +1932,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="250" y="-476"/>
+							<AbsDimension x="250" y="-496"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -1996,6 +1997,32 @@
 					</OnClick>
 					<OnEnter>
 						SimpleQoLOptions_OnEnter(38);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleQoLOption39" inherits="OptionsCheckButtonTemplate">
+				<Size>
+					<AbsDimension x="26" y="26"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="250" y="-414"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Show target distance");
+					</OnLoad>
+					<OnClick>
+						SimpleQoLOptions_Toggle(39);
+					</OnClick>
+					<OnEnter>
+						SimpleQoLOptions_OnEnter(39);
 					</OnEnter>
 					<OnLeave>
 						GameTooltip:Hide();
@@ -2078,7 +2105,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="400" y="-438"/>
+							<AbsDimension x="400" y="-458"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -2098,7 +2125,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="400" y="-478"/>
+							<AbsDimension x="400" y="-498"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -9855,6 +9882,38 @@
 			<OnEvent>
 				SimpleQoL_ProfEvent();
 			</OnEvent>
+		</Scripts>
+	</Frame>
+	<Frame name="SimpleQoLTargetDist" parent="TargetFrame" frameStrata="BACKGROUND">
+		<Size>
+			<AbsDimension x="80" y="14"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOM" relativeTo="TargetPortrait" relativePoint="TOP">
+				<Offset>
+					<AbsDimension x="0" y="16"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="SimpleQoLTargetDistText" inherits="GameFontHighlightSmall">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				SimpleQoL_Dist_OnLoad();
+			</OnLoad>
+			<OnEvent>
+				SimpleQoL_Dist_OnEvent(event);
+			</OnEvent>
+			<OnUpdate>
+				SimpleQoL_Dist_OnUpdate(arg1);
+			</OnUpdate>
 		</Scripts>
 	</Frame>
 </Ui>

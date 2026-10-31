@@ -83,7 +83,7 @@ end
 if ( SIMPLESAVE_VERSION and SimpleSave_VersionValue(SIMPLESAVE_VERSION) >= SimpleSave_VersionValue("1.12") ) then
 	return;
 end
-SIMPLESAVE_VERSION = "1.17";
+SIMPLESAVE_VERSION = "1.22";
 SIMPLESAVE_FORMAT = "1";          -- old format (read only, see below)
 SIMPLESAVE_FORMAT2 = "2";
 SIMPLESAVE_B36 = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -95,6 +95,18 @@ SIMPLESAVE_PAYLOAD = SIMPLESAVE_KEY_LENGTH - 4;
 SIMPLESAVE_PAYLOAD2 = SIMPLESAVE_KEY_LENGTH - 5;
 SIMPLESAVE_MAX_CHUNKS = 999;
 SIMPLESAVE_WRITE_DELAY = 1.0;
+SIMPLESAVE_STEP_COMMANDS = 8;      -- commands read per frame during a spread-out save
+SIMPLESAVE_URGENT_GAP = 30;        -- settings: at most one disk write per 30 seconds (they apply in game at once)
+SIMPLESAVE_AUTO_DELAY = 300;       -- data the addons collect by themselves: at most one write per 5 minutes
+-- Values the addons collect by themselves while playing (addon, name start).
+-- Everything else (settings the player changes) is written after 1 second.
+SIMPLESAVE_AUTO = {
+	{ "SimpleWalk", "" },
+	{ "SimpleMap", "N" },
+	{ "SimpleQoL", "Prices" },
+	{ "SimpleQoL", "MaxLevel" },
+	{ "SimpleQoL@", "Known" },
+};
 SIMPLESAVE_EXPORT_PART = 900;      -- characters per export part
 
 SimpleSave_Data = {};              -- SimpleSave_Data[addon][name] = "value"
@@ -103,6 +115,9 @@ SimpleSave_Blocked = nil;          -- reason text when the saved data is damaged
 SimpleSave_RawStream = nil;        -- damaged data kept for export
 SimpleSave_Dirty = nil;
 SimpleSave_DirtyTime = 0;
+SimpleSave_Urgent = nil;          -- a setting changed: write after 1 second
+SimpleSave_LastFlush = nil;        -- time of the last write
+SimpleSave_Job = nil;              -- a save spread over several frames (see SimpleSave_JobStep)
 SimpleSave_Writing = nil;
 SimpleSave_LoadFuncs = SimpleSave_LoadFuncs or {};
 SimpleSave_LastError = nil;
@@ -461,6 +476,96 @@ function SimpleSave_Join(records)
 	return list[1] or "";
 end
 
+--------------------------------------------------------------------------------
+-- Fast path for saving: the same records, checksum and length as
+-- BuildRecords + Join + Checksum, without redoing all the work every time.
+--   * encoded names and values are kept and only redone when a value changed
+--   * the sorted order only changes when values are added or removed (the
+--     order is decided by "addon.name" alone: encoded names never contain ".")
+--   * the checksum is put together from each record's own part, so the whole
+--     text never has to be built (h(A+B) = h(A) * 31^len(B) + h0(B), mod 65521)
+--------------------------------------------------------------------------------
+
+SimpleSave_EncCache = {};          -- text -> encoded text (addon and value names)
+SimpleSave_RecCache = {};          -- id "addon.name" -> { value, record, hash, power }
+SimpleSave_SortedIds = nil;        -- sorted ids of the last fast build
+
+function SimpleSave_EncodeCached(text)
+	local e = SimpleSave_EncCache[text];
+	if ( not e ) then
+		e = SimpleSave_Encode(text);
+		SimpleSave_EncCache[text] = e;
+	end
+	return e;
+end
+
+-- Hash part of one text starting from 0, and 31^length (both mod 65521).
+function SimpleSave_HashPart(text)
+	local sum = 0;
+	local power = 1;
+	local i;
+	for i = 1, strlen(text) do
+		sum = mod(sum * 31 + strbyte(text, i), 65521);
+		power = mod(power * 31, 65521);
+	end
+	return sum, power;
+end
+
+-- Returns records (sorted), the checksum text and the length of the joined text.
+function SimpleSave_FastRecords()
+	local seen = {};
+	local count = 0;
+	local added = nil;
+	foreach(SimpleSave_Data, function(addon, values)
+		local ea = SimpleSave_EncodeCached(addon);
+		foreach(values, function(name, value)
+			local id = ea.."."..SimpleSave_EncodeCached(name);
+			local c = SimpleSave_RecCache[id];
+			if ( not c ) then
+				c = {};
+				SimpleSave_RecCache[id] = c;
+				added = 1;
+			end
+			if ( c.value ~= value ) then
+				c.value = value;
+				c.record = id.."."..SimpleSave_Encode(value);
+				c.hash, c.power = SimpleSave_HashPart(c.record);
+			end
+			seen[id] = 1;
+			count = count + 1;
+		end);
+	end);
+	-- Removed values leave the cache.
+	local removed = nil;
+	foreach(SimpleSave_RecCache, function(id)
+		if ( not seen[id] ) then
+			SimpleSave_RecCache[id] = nil;
+			removed = 1;
+		end
+	end);
+	if ( added or removed or not SimpleSave_SortedIds or getn(SimpleSave_SortedIds) ~= count ) then
+		local ids = {};
+		foreach(seen, function(id) tinsert(ids, id); end);
+		SimpleSave_SortList(ids);
+		SimpleSave_SortedIds = ids;
+	end
+	local records = {};
+	local sum = 7;
+	local length = 0;
+	local i, c;
+	for i = 1, getn(SimpleSave_SortedIds) do
+		c = SimpleSave_RecCache[SimpleSave_SortedIds[i]];
+		if ( i > 1 ) then
+			sum = mod(sum * 31 + 43, 65521);   -- "+"
+			length = length + 1;
+		end
+		sum = mod(sum * c.power + c.hash, 65521);
+		length = length + strlen(c.record);
+		records[i] = c.record;
+	end
+	return records, SimpleSave_Hex2(floor(sum / 256))..SimpleSave_Hex2(mod(sum, 256)), length;
+end
+
 function SimpleSave_BuildStream()
 	return SimpleSave_Join(SimpleSave_BuildRecords());
 end
@@ -515,7 +620,7 @@ end
 -- The keys for the records: map key -> command, and the number of keys.
 -- Every record keeps the slot it had, so unchanged records keep their keys.
 -- Returns nil and an error text when the data does not fit.
-function SimpleSave_BuildKeys(records, stream)
+function SimpleSave_BuildKeys(records, checksum)
 	local present = {};
 	local i;
 	for i = 1, getn(records) do
@@ -559,7 +664,7 @@ function SimpleSave_BuildKeys(records, stream)
 		count = count + n;
 		parts = parts + n;
 	end
-	wanted["t0000"..SIMPLESAVE_FORMAT2.."."..getn(records).."."..parts.."."..SimpleSave_Checksum(stream)] = SimpleSave_Command(0);
+	wanted["t0000"..SIMPLESAVE_FORMAT2.."."..getn(records).."."..parts.."."..checksum] = SimpleSave_Command(0);
 	return wanted, count;
 end
 
@@ -786,15 +891,14 @@ end
 -- Binds exactly the keys for the current data and removes old ones.
 -- Returns 1 if the bindings now hold the data (checked by reading them back).
 function SimpleSave_WriteKeys()
-	local records = SimpleSave_BuildRecords();
-	local stream = SimpleSave_Join(records);
-	local wanted, count = SimpleSave_BuildKeys(records, stream);
+	local records, checksum, length = SimpleSave_FastRecords();
+	local wanted, count = SimpleSave_BuildKeys(records, checksum);
 	if ( not wanted ) then
 		SimpleSave_LastError = count;
 		return nil;
 	end
 	if ( count - 1 > SIMPLESAVE_MAX_CHUNKS ) then
-		SimpleSave_LastError = "too much data ("..strlen(stream).." characters)";
+		SimpleSave_LastError = "too much data ("..length.." characters)";
 		return nil;
 	end
 	-- Other addons (SimpleMacros) skip the key binding events of this write.
@@ -803,16 +907,28 @@ function SimpleSave_WriteKeys()
 	-- Only keys that differ are touched: old ones (other values, old format,
 	-- test keys, leftovers) are removed, missing ones are added.
 	local have = SimpleSave_ReadKeyMap();
+	local changed = nil;
 	foreach(have, function(key, command)
 		if ( wanted[key] ~= command ) then
 			SetBinding(key);
+			changed = 1;
 		end
 	end);
 	foreach(wanted, function(key, command)
 		if ( have[key] ~= command ) then
 			SetBinding(key, command);
+			changed = 1;
 		end
 	end);
+	SimpleSave_KeysChanged = changed;
+	if ( not changed ) then
+		-- Nothing differs: the file already holds this data.
+		SimpleSave_Writing = nil;
+		SimpleSave_Chunks = count - 1;
+		SimpleSave_Bytes = length;
+		SimpleSave_LastError = nil;
+		return 1;
+	end
 	SimpleSave_Writing = nil;
 	-- Read back: exactly the wanted keys must be bound now.
 	local now = SimpleSave_ReadKeyMap();
@@ -826,7 +942,7 @@ function SimpleSave_WriteKeys()
 	end);
 	if ( ok and found == count ) then
 		SimpleSave_Chunks = count - 1;
-		SimpleSave_Bytes = strlen(stream);
+		SimpleSave_Bytes = length;
 		SimpleSave_LastError = nil;
 		return 1;
 	end
@@ -852,13 +968,157 @@ function SimpleSave_Flush()
 			return;
 		end
 	end
+	SimpleSave_Job = nil;
 	SimpleSave_Dirty = nil;
+	SimpleSave_Urgent = nil;
+	SimpleSave_LastFlush = GetTime();
 	if ( SimpleSave_WriteKeys() ) then
+		SimpleSave_LoadedEmpty = nil;
+		-- Writing the file is the slow part: only when a key really changed.
+		if ( SimpleSave_KeysChanged ) then
+			SaveBindings();
+			SimpleSave_LastWrite = GetTime();
+		end
+	else
+		SimpleSave_Print("|cffff4040could not save: "..(SimpleSave_LastError or "unknown error").."|r");
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Spread-out save: the same work as SimpleSave_Flush, but one small step per
+-- frame (read 8 commands, change 1 key, ...) so saving causes no lag spike.
+-- Nothing reaches the file before the last step (SaveBindings), so a crash in
+-- between leaves the previous save. Quit, Logout and loading screens still use
+-- SimpleSave_Flush, which finishes everything at once.
+--------------------------------------------------------------------------------
+
+function SimpleSave_CanWrite()
+	if ( not SimpleSave_Loaded or SimpleSave_Blocked ) then
+		return nil;
+	end
+	if ( KeyBindingFrame and KeyBindingFrame:IsVisible() ) then
+		return nil;
+	end
+	return 1;
+end
+
+function SimpleSave_StartJob()
+	if ( not SimpleSave_CanWrite() ) then
+		return;
+	end
+	-- Rare case (bindings read late): do it all at once as before.
+	if ( SimpleSave_LoadedEmpty ) then
+		SimpleSave_Flush();
+		return;
+	end
+	SimpleSave_Dirty = nil;
+	SimpleSave_Urgent = nil;
+	SimpleSave_LastFlush = GetTime();
+	local records, checksum, length = SimpleSave_FastRecords();
+	local wanted, count = SimpleSave_BuildKeys(records, checksum);
+	if ( not wanted ) then
+		SimpleSave_Print("|cffff4040could not save: "..(count or "unknown error").."|r");
+		return;
+	end
+	if ( count - 1 > SIMPLESAVE_MAX_CHUNKS ) then
+		SimpleSave_Print("|cffff4040could not save: too much data ("..length.." characters)|r");
+		return;
+	end
+	SimpleSave_Job = { step = "read", command = 1, have = {}, wanted = wanted, count = count, bytes = length };
+end
+
+-- Reads the next commands into map; returns 1 when all 40 are read.
+function SimpleSave_JobRead(job, map)
+	local last = min(job.command + SIMPLESAVE_STEP_COMMANDS - 1, SIMPLESAVE_COMMANDS);
+	local i, j, found, command;
+	for i = job.command, last do
+		command = "ADDONDATA"..i;
+		found = { GetBindingKey(command) };
+		for j = 1, getn(found) do
+			if ( found[j] and found[j] ~= "" ) then
+				map[found[j]] = command;
+			end
+		end
+	end
+	job.command = last + 1;
+	return job.command > SIMPLESAVE_COMMANDS;
+end
+
+function SimpleSave_JobStep()
+	local job = SimpleSave_Job;
+	if ( not SimpleSave_CanWrite() ) then
+		-- Key Bindings window opened: try again later.
+		SimpleSave_Job = nil;
+		SimpleSave_MarkDirty();
+		return;
+	end
+	if ( job.step == "read" ) then
+		if ( SimpleSave_JobRead(job, job.have) ) then
+			-- Old keys are removed first, then the new ones are added.
+			job.changes = {};
+			foreach(job.have, function(key, command)
+				if ( job.wanted[key] ~= command ) then
+					tinsert(job.changes, { key });
+				end
+			end);
+			foreach(job.wanted, function(key, command)
+				if ( job.have[key] ~= command ) then
+					tinsert(job.changes, { key, command });
+				end
+			end);
+			if ( getn(job.changes) == 0 ) then
+				-- The file already holds this data.
+				SimpleSave_Job = nil;
+				SimpleSave_LoadedEmpty = nil;
+				return;
+			end
+			job.step = "write";
+			job.index = 1;
+		end
+	elseif ( job.step == "write" ) then
+		local change = job.changes[job.index];
+		-- Other addons (SimpleMacros) skip the key binding events of this write.
+		SimpleSave_LastWrite = GetTime();
+		SimpleSave_Writing = 1;
+		if ( change[2] ) then
+			SetBinding(change[1], change[2]);
+		else
+			SetBinding(change[1]);
+		end
+		SimpleSave_Writing = nil;
+		job.index = job.index + 1;
+		if ( job.index > getn(job.changes) ) then
+			job.step = "check";
+			job.command = 1;
+			job.now = {};
+		end
+	elseif ( job.step == "check" ) then
+		if ( SimpleSave_JobRead(job, job.now) ) then
+			-- Read back: exactly the wanted keys must be bound now.
+			local ok = 1;
+			local found = 0;
+			foreach(job.now, function(key, command)
+				found = found + 1;
+				if ( job.wanted[key] ~= command ) then
+					ok = nil;
+				end
+			end);
+			if ( ok and found == job.count ) then
+				SimpleSave_Chunks = job.count - 1;
+				SimpleSave_Bytes = job.bytes;
+				SimpleSave_LastError = nil;
+				job.step = "save";
+			else
+				SimpleSave_Job = nil;
+				SimpleSave_LastError = "the client did not keep all keys ("..job.count.." keys)";
+				SimpleSave_Print("|cffff4040could not save: "..SimpleSave_LastError.."|r");
+			end
+		end
+	elseif ( job.step == "save" ) then
+		SimpleSave_Job = nil;
 		SimpleSave_LoadedEmpty = nil;
 		SaveBindings();
 		SimpleSave_LastWrite = GetTime();
-	else
-		SimpleSave_Print("|cffff4040could not save: "..(SimpleSave_LastError or "unknown error").."|r");
 	end
 end
 
@@ -878,9 +1138,27 @@ function SimpleSave_LateLoad()
 	end);
 end
 
-function SimpleSave_MarkDirty()
+-- 1 when the value is data an addon collects by itself (see SIMPLESAVE_AUTO).
+function SimpleSave_IsAuto(addon, name)
+	local i, entry;
+	for i = 1, getn(SIMPLESAVE_AUTO) do
+		entry = SIMPLESAVE_AUTO[i];
+		if ( strsub(addon, 1, strlen(entry[1])) == entry[1] and strsub(name, 1, strlen(entry[2])) == entry[2] ) then
+			-- "SimpleQoL" must not match "SimpleQoL@Name" (per character).
+			if ( strlen(addon) == strlen(entry[1]) or strsub(entry[1], -1) == "@" ) then
+				return 1;
+			end
+		end
+	end
+	return nil;
+end
+
+function SimpleSave_MarkDirty(addon, name)
 	SimpleSave_Dirty = 1;
 	SimpleSave_DirtyTime = GetTime();
+	if ( not addon or not SimpleSave_IsAuto(addon, name) ) then
+		SimpleSave_Urgent = 1;
+	end
 end
 
 
@@ -935,7 +1213,7 @@ function SimpleSave_Set(addon, name, value)
 		end
 		values[name] = value;
 	end
-	SimpleSave_MarkDirty();
+	SimpleSave_MarkDirty(addon, name);
 end
 
 function SimpleSave_ClearAddon(addon)
@@ -979,6 +1257,7 @@ function SimpleSave_HookBindings()
 	DefaultBindings = function()
 		SimpleSave_Orig_DefaultBindings();
 		if ( SimpleSave_Loaded and not SimpleSave_Blocked ) then
+			SimpleSave_Job = nil;
 			SimpleSave_WriteKeys();
 			if ( KeyBindingFrameOutputText ) then
 				KeyBindingFrameOutputText:SetText("Addon settings were kept (SimpleSave).");
@@ -1018,6 +1297,8 @@ function SimpleSave_OnLoad()
 	this:RegisterEvent("PLAYER_ENTERING_WORLD");
 	this:RegisterEvent("UPDATE_BINDINGS");
 	this:RegisterEvent("PLAYER_QUITING");
+	this:RegisterEvent("PLAYER_CAMPING");
+	this:RegisterEvent("PLAYER_LEAVING_WORLD");
 	SlashCmdList["SIMPLESAVE"] = SimpleSave_Slash;
 	SLASH_SIMPLESAVE1 = "/ssave";
 	SLASH_SIMPLESAVE2 = "/simplesave";
@@ -1068,13 +1349,18 @@ function SimpleSave_OnEvent(event)
 	elseif ( event == "UPDATE_BINDINGS" ) then
 		-- Bindings may be read after the first PLAYER_ENTERING_WORLD on some
 		-- clients: if nothing was found before, look again (once data shows up).
-		if ( SimpleSave_Loaded and not SimpleSave_Writing and not SimpleSave_Blocked and SimpleSave_LoadedEmpty ) then
+		if ( SimpleSave_Loaded and not SimpleSave_Writing and not SimpleSave_Job and not SimpleSave_Blocked and SimpleSave_LoadedEmpty ) then
 			if ( SimpleSave_ReadStream() ~= "empty" ) then
 				SimpleSave_LateLoad();
 			end
 		end
 	elseif ( event == "PLAYER_QUITING" ) then
 		SimpleSave_Flush();
+	elseif ( event == "PLAYER_CAMPING" or event == "PLAYER_LEAVING_WORLD" ) then
+		-- Logging out or a loading screen: write what is still waiting.
+		if ( SimpleSave_Dirty or SimpleSave_Job ) then
+			SimpleSave_Flush();
+		end
 	end
 end
 
@@ -1085,8 +1371,21 @@ function SimpleSave_OnUpdate()
 	if ( SimpleHello_Tick ) then
 		SimpleHello_Tick();
 	end
-	if ( SimpleSave_Dirty and GetTime() - SimpleSave_DirtyTime >= SIMPLESAVE_WRITE_DELAY ) then
-		SimpleSave_Flush();
+	if ( SimpleSave_Job ) then
+		SimpleSave_JobStep();
+	elseif ( SimpleSave_Dirty ) then
+		local now = GetTime();
+		if ( not SimpleSave_LastFlush ) then
+			SimpleSave_LastFlush = now - SIMPLESAVE_URGENT_GAP;
+		end
+		-- Writing bindings.wtf can take 100-250 ms on a slow (USB) disk, so
+		-- changed settings are written at most every 30 seconds, collected
+		-- data at most every 5 minutes, everything at logout and loading screens.
+		if ( now - SimpleSave_DirtyTime >= SIMPLESAVE_WRITE_DELAY
+				and ((SimpleSave_Urgent and now - SimpleSave_LastFlush >= SIMPLESAVE_URGENT_GAP)
+					or now - SimpleSave_LastFlush >= SIMPLESAVE_AUTO_DELAY) ) then
+			SimpleSave_StartJob();
+		end
 	end
 end
 
