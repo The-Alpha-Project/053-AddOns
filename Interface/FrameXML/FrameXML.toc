@@ -96,4 +96,13 @@ Interface\FrameXML\EsUI\EsUI_Bindings.xml
 #Interface\FrameXML\MacroBook\MacroBook.xml
 #Interface\FrameXML\ExtendedStats\ExtendedStats.xml
 
+# Simple AddOns (remove # to load; load SimpleSave too, it saves their settings)
+
+Interface\FrameXML\AlphaUI\AlphaUI.xml
+Interface\FrameXML\SimpleSave\SimpleSave.xml
+Interface\FrameXML\SimpleMap\SimpleMap.xml
+Interface\FrameXML\SimpleChat\SimpleChat.xml
+Interface\FrameXML\SimpleQoL\SimpleQoL.xml
+Interface\FrameXML\SimpleMacros\SimpleMacros.xml
+
 # End of Custom AddOn list.

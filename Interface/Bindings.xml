@@ -313,6 +313,439 @@
 	<Binding name="NEXTACTIONPAGE">
 		ActionBar_PageUp();
 	</Binding>
+	<!-- Extra Action Bars (ActionBars addon) -->
+	<Binding name="ACTIONBARS_SLOT61" description="Bar 1 Button 1" runOnUp="true" header="20">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(61);
+			else
+				ActionBars_KeyUp(61);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT62" description="Bar 1 Button 2" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(62);
+			else
+				ActionBars_KeyUp(62);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT63" description="Bar 1 Button 3" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(63);
+			else
+				ActionBars_KeyUp(63);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT64" description="Bar 1 Button 4" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(64);
+			else
+				ActionBars_KeyUp(64);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT65" description="Bar 1 Button 5" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(65);
+			else
+				ActionBars_KeyUp(65);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT66" description="Bar 1 Button 6" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(66);
+			else
+				ActionBars_KeyUp(66);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT67" description="Bar 1 Button 7" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(67);
+			else
+				ActionBars_KeyUp(67);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT68" description="Bar 1 Button 8" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(68);
+			else
+				ActionBars_KeyUp(68);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT69" description="Bar 1 Button 9" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(69);
+			else
+				ActionBars_KeyUp(69);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT70" description="Bar 1 Button 10" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(70);
+			else
+				ActionBars_KeyUp(70);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT71" description="Bar 1 Button 11" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(71);
+			else
+				ActionBars_KeyUp(71);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT72" description="Bar 1 Button 12" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(72);
+			else
+				ActionBars_KeyUp(72);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT49" description="Bar 2 Button 1" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(49);
+			else
+				ActionBars_KeyUp(49);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT50" description="Bar 2 Button 2" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(50);
+			else
+				ActionBars_KeyUp(50);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT51" description="Bar 2 Button 3" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(51);
+			else
+				ActionBars_KeyUp(51);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT52" description="Bar 2 Button 4" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(52);
+			else
+				ActionBars_KeyUp(52);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT53" description="Bar 2 Button 5" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(53);
+			else
+				ActionBars_KeyUp(53);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT54" description="Bar 2 Button 6" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(54);
+			else
+				ActionBars_KeyUp(54);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT55" description="Bar 2 Button 7" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(55);
+			else
+				ActionBars_KeyUp(55);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT56" description="Bar 2 Button 8" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(56);
+			else
+				ActionBars_KeyUp(56);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT57" description="Bar 2 Button 9" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(57);
+			else
+				ActionBars_KeyUp(57);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT58" description="Bar 2 Button 10" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(58);
+			else
+				ActionBars_KeyUp(58);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT59" description="Bar 2 Button 11" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(59);
+			else
+				ActionBars_KeyUp(59);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT60" description="Bar 2 Button 12" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(60);
+			else
+				ActionBars_KeyUp(60);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT25" description="Bar 3 Button 1" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(25);
+			else
+				ActionBars_KeyUp(25);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT26" description="Bar 3 Button 2" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(26);
+			else
+				ActionBars_KeyUp(26);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT27" description="Bar 3 Button 3" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(27);
+			else
+				ActionBars_KeyUp(27);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT28" description="Bar 3 Button 4" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(28);
+			else
+				ActionBars_KeyUp(28);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT29" description="Bar 3 Button 5" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(29);
+			else
+				ActionBars_KeyUp(29);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT30" description="Bar 3 Button 6" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(30);
+			else
+				ActionBars_KeyUp(30);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT31" description="Bar 3 Button 7" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(31);
+			else
+				ActionBars_KeyUp(31);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT32" description="Bar 3 Button 8" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(32);
+			else
+				ActionBars_KeyUp(32);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT33" description="Bar 3 Button 9" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(33);
+			else
+				ActionBars_KeyUp(33);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT34" description="Bar 3 Button 10" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(34);
+			else
+				ActionBars_KeyUp(34);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT35" description="Bar 3 Button 11" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(35);
+			else
+				ActionBars_KeyUp(35);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT36" description="Bar 3 Button 12" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(36);
+			else
+				ActionBars_KeyUp(36);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT37" description="Bar 4 Button 1" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(37);
+			else
+				ActionBars_KeyUp(37);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT38" description="Bar 4 Button 2" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(38);
+			else
+				ActionBars_KeyUp(38);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT39" description="Bar 4 Button 3" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(39);
+			else
+				ActionBars_KeyUp(39);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT40" description="Bar 4 Button 4" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(40);
+			else
+				ActionBars_KeyUp(40);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT41" description="Bar 4 Button 5" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(41);
+			else
+				ActionBars_KeyUp(41);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT42" description="Bar 4 Button 6" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(42);
+			else
+				ActionBars_KeyUp(42);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT43" description="Bar 4 Button 7" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(43);
+			else
+				ActionBars_KeyUp(43);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT44" description="Bar 4 Button 8" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(44);
+			else
+				ActionBars_KeyUp(44);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT45" description="Bar 4 Button 9" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(45);
+			else
+				ActionBars_KeyUp(45);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT46" description="Bar 4 Button 10" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(46);
+			else
+				ActionBars_KeyUp(46);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT47" description="Bar 4 Button 11" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(47);
+			else
+				ActionBars_KeyUp(47);
+			end
+		end
+	</Binding>
+	<Binding name="ACTIONBARS_SLOT48" description="Bar 4 Button 12" runOnUp="true">
+		if ( ActionBars_KeyDown ) then
+			if ( keystate == "down" ) then
+				ActionBars_KeyDown(48);
+			else
+				ActionBars_KeyUp(48);
+			end
+		end
+	</Binding>
 	<!-- Target function key bindings -->
 	<Binding name="TARGETNEARESTENEMY" description="Target the nearest enemy, repeat to cycle" header="4">
 		TargetNearestEnemy();
@@ -455,10 +888,14 @@
 		if ( UIParent:IsVisible() ) then
 			CloseAllWindows();
 			UIParent:Hide();
-			ChatFrameCopyButton:Hide()
+			if ( ChatFrameCopyButton ) then
+				ChatFrameCopyButton:Hide();
+			end
 		else
 			UIParent:Show();
-			ChatFrameCopyButton:Show()
+			if ( ChatFrameCopyButton ) then
+				ChatFrameCopyButton:Show();
+			end
 		end
 	</Binding>
 	<!-- Camera key bindings -->
@@ -558,6 +995,127 @@
 		ResetView(5);
 	</Binding>
 		
+	<!-- Spare key commands for our addons (e.g. MacroUI). The addon using a key names it in the list. -->
+	<Binding name="ADDONKEY1" description="Addon key 1" runOnUp="true" header="21">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(1, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY2" description="Addon key 2" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(2, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY3" description="Addon key 3" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(3, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY4" description="Addon key 4" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(4, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY5" description="Addon key 5" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(5, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY6" description="Addon key 6" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(6, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY7" description="Addon key 7" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(7, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY8" description="Addon key 8" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(8, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY9" description="Addon key 9" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(9, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY10" description="Addon key 10" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(10, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY11" description="Addon key 11" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(11, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY12" description="Addon key 12" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(12, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY13" description="Addon key 13" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(13, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY14" description="Addon key 14" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(14, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY15" description="Addon key 15" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(15, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY16" description="Addon key 16" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(16, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY17" description="Addon key 17" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(17, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY18" description="Addon key 18" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(18, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY19" description="Addon key 19" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(19, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY20" description="Addon key 20" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(20, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY21" description="Addon key 21" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(21, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY22" description="Addon key 22" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(22, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY23" description="Addon key 23" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(23, keystate);
+		end
+	</Binding>
+	<Binding name="ADDONKEY24" description="Addon key 24" runOnUp="true">
+		if ( AddonKey_Run ) then
+			AddonKey_Run(24, keystate);
+		end
+	</Binding>
 	<!-- Debug function key bindings -->
 	<Binding name="TOGGLEFPS" description="Toggles FPS display" hidden="true">
 		ToggleFramerate();
@@ -610,6 +1168,207 @@
 			CameraOrSelectOrMoveStart(arg1);
 		else
 			CameraOrSelectOrMoveStop(arg1, 1);
+		end
+	</Binding>
+	<!-- Hidden commands reserved for saving addon data (not shown in the Key Bindings window) -->
+	<Binding name="ADDONDATA1" description="Addon data 1" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(1);
+		end
+	</Binding>
+	<Binding name="ADDONDATA2" description="Addon data 2" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(2);
+		end
+	</Binding>
+	<Binding name="ADDONDATA3" description="Addon data 3" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(3);
+		end
+	</Binding>
+	<Binding name="ADDONDATA4" description="Addon data 4" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(4);
+		end
+	</Binding>
+	<Binding name="ADDONDATA5" description="Addon data 5" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(5);
+		end
+	</Binding>
+	<Binding name="ADDONDATA6" description="Addon data 6" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(6);
+		end
+	</Binding>
+	<Binding name="ADDONDATA7" description="Addon data 7" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(7);
+		end
+	</Binding>
+	<Binding name="ADDONDATA8" description="Addon data 8" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(8);
+		end
+	</Binding>
+	<Binding name="ADDONDATA9" description="Addon data 9" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(9);
+		end
+	</Binding>
+	<Binding name="ADDONDATA10" description="Addon data 10" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(10);
+		end
+	</Binding>
+	<Binding name="ADDONDATA11" description="Addon data 11" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(11);
+		end
+	</Binding>
+	<Binding name="ADDONDATA12" description="Addon data 12" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(12);
+		end
+	</Binding>
+	<Binding name="ADDONDATA13" description="Addon data 13" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(13);
+		end
+	</Binding>
+	<Binding name="ADDONDATA14" description="Addon data 14" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(14);
+		end
+	</Binding>
+	<Binding name="ADDONDATA15" description="Addon data 15" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(15);
+		end
+	</Binding>
+	<Binding name="ADDONDATA16" description="Addon data 16" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(16);
+		end
+	</Binding>
+	<Binding name="ADDONDATA17" description="Addon data 17" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(17);
+		end
+	</Binding>
+	<Binding name="ADDONDATA18" description="Addon data 18" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(18);
+		end
+	</Binding>
+	<Binding name="ADDONDATA19" description="Addon data 19" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(19);
+		end
+	</Binding>
+	<Binding name="ADDONDATA20" description="Addon data 20" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(20);
+		end
+	</Binding>
+	<Binding name="ADDONDATA21" description="Addon data 21" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(21);
+		end
+	</Binding>
+	<Binding name="ADDONDATA22" description="Addon data 22" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(22);
+		end
+	</Binding>
+	<Binding name="ADDONDATA23" description="Addon data 23" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(23);
+		end
+	</Binding>
+	<Binding name="ADDONDATA24" description="Addon data 24" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(24);
+		end
+	</Binding>
+	<Binding name="ADDONDATA25" description="Addon data 25" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(25);
+		end
+	</Binding>
+	<Binding name="ADDONDATA26" description="Addon data 26" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(26);
+		end
+	</Binding>
+	<Binding name="ADDONDATA27" description="Addon data 27" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(27);
+		end
+	</Binding>
+	<Binding name="ADDONDATA28" description="Addon data 28" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(28);
+		end
+	</Binding>
+	<Binding name="ADDONDATA29" description="Addon data 29" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(29);
+		end
+	</Binding>
+	<Binding name="ADDONDATA30" description="Addon data 30" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(30);
+		end
+	</Binding>
+	<Binding name="ADDONDATA31" description="Addon data 31" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(31);
+		end
+	</Binding>
+	<Binding name="ADDONDATA32" description="Addon data 32" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(32);
+		end
+	</Binding>
+	<Binding name="ADDONDATA33" description="Addon data 33" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(33);
+		end
+	</Binding>
+	<Binding name="ADDONDATA34" description="Addon data 34" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(34);
+		end
+	</Binding>
+	<Binding name="ADDONDATA35" description="Addon data 35" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(35);
+		end
+	</Binding>
+	<Binding name="ADDONDATA36" description="Addon data 36" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(36);
+		end
+	</Binding>
+	<Binding name="ADDONDATA37" description="Addon data 37" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(37);
+		end
+	</Binding>
+	<Binding name="ADDONDATA38" description="Addon data 38" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(38);
+		end
+	</Binding>
+	<Binding name="ADDONDATA39" description="Addon data 39" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(39);
+		end
+	</Binding>
+	<Binding name="ADDONDATA40" description="Addon data 40" hidden="true">
+		if ( AddonData_Run ) then
+			AddonData_Run(40);
 		end
 	</Binding>
 </Bindings>
