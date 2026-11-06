@@ -1,0 +1,2458 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!--
+		SimpleMacros for WoW 0.5.3: a 1.12-style macro window, a macro bar and macro storage.
+		Script blocks in this file contain no Lua comments and only ASCII on purpose:
+		the 0.5.3 client has shown problems with both inside XML scripts.
+	-->
+	<Script file="SimpleMacros_Icons.lua"/>
+	<Script file="SimpleMacros_SpellIcons.lua"/>
+	<Script file="SimpleMacros_Core.lua"/>
+	<Script file="SimpleMacros_Engine.lua"/>
+	<Script file="SimpleMacros_Compat.lua"/>
+	<Script file="SimpleMacros_Storage.lua"/>
+	<Script file="SimpleMacros_Frame.lua"/>
+	<Script file="SimpleMacros_Slots.lua"/>
+	<Script file="SimpleMacros_Help.lua"/>
+
+	<!-- Action button look (copy of the 0.5.3 ActionButtonTemplate) plus a name label -->
+	<CheckButton name="SimpleMacrosActionButtonTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="36" y="36"/>
+		</Size>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentIcon"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString name="$parentHotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="2" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentName" inherits="GameFontHighlightSmall" justifyH="CENTER">
+					<Size>
+						<AbsDimension x="44" y="10"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Model name="$parentCooldown" inherits="CooldownFrameTemplate"/>
+		</Frames>
+		<NormalTexture name="$parentNormalTexture" file="Interface\Buttons\UI-Quickslot2">
+			<Size>
+				<AbsDimension x="64" y="64"/>
+			</Size>
+			<Anchors>
+				<Anchor point="CENTER">
+					<Offset>
+						<AbsDimension x="0" y="-1"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+		</NormalTexture>
+		<PushedTexture file="Interface\Buttons\UI-Quickslot-Depress"/>
+		<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+		<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+	</CheckButton>
+
+	<GameTooltip name="SimpleMacrosScanTooltip" frameStrata="TOOLTIP" hidden="true" parent="UIParent" inherits="GameTooltipTemplate"/>
+
+	<Frame name="SimpleMacrosEventFrame">
+		<Scripts>
+			<OnLoad>
+				SimpleMacros_OnLoad();
+			</OnLoad>
+			<OnEvent>
+				SimpleMacros_OnEvent(event);
+			</OnEvent>
+		</Scripts>
+	</Frame>
+
+	<!-- Macro window, opened with /macro -->
+	<Frame name="SimpleMacrosFrame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="360" y="500"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset>
+					<AbsDimension x="16" y="-104"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<TitleRegion>
+			<Size>
+				<AbsDimension x="360" y="40"/>
+			</Size>
+			<Anchors>
+				<Anchor point="TOP"/>
+			</Anchors>
+		</TitleRegion>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="11" top="11" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="SimpleMacrosVersion" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset>
+								<AbsDimension x="-6" y="4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture name="SimpleMacrosFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="SimpleMacrosFrameTitle" inherits="GameFontNormal" text="Create Macros">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<Texture name="SimpleMacrosSelectedIconBackground" file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="10" y="-226"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="SimpleMacrosSelectedName" inherits="GameFontHighlight" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="190" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="72" y="-236"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="SimpleMacrosEnterLabel" inherits="GameFontNormalSmall" text="Enter Macro Commands:" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-294"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="SimpleMacrosCharCount" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-428"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="SimpleMacrosStatusText" inherits="GameFontNormalSmall" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="312" y="24"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-442"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="SimpleMacrosSelectedIcon">
+					<Size>
+						<AbsDimension x="36" y="36"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-241"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="SimpleMacrosFrameCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-6" y="-6"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="SimpleMacrosFrameTabGeneral" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="156" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="20" y="-40"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("General Macros");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosFrame_SetTab("g");
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosFrameTabCharacter" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="156" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="184" y="-40"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Character Macros");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosFrame_SetTab("c");
+					</OnClick>
+				</Scripts>
+			</Button>
+			<CheckButton name="SimpleMacrosButton1" inherits="SimpleMacrosActionButtonTemplate" id="1">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="27" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton2" inherits="SimpleMacrosActionButtonTemplate" id="2">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="79" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton3" inherits="SimpleMacrosActionButtonTemplate" id="3">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="131" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton4" inherits="SimpleMacrosActionButtonTemplate" id="4">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="183" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton5" inherits="SimpleMacrosActionButtonTemplate" id="5">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="235" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton6" inherits="SimpleMacrosActionButtonTemplate" id="6">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="287" y="-70"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton7" inherits="SimpleMacrosActionButtonTemplate" id="7">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="27" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton8" inherits="SimpleMacrosActionButtonTemplate" id="8">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="79" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton9" inherits="SimpleMacrosActionButtonTemplate" id="9">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="131" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton10" inherits="SimpleMacrosActionButtonTemplate" id="10">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="183" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton11" inherits="SimpleMacrosActionButtonTemplate" id="11">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="235" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton12" inherits="SimpleMacrosActionButtonTemplate" id="12">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="287" y="-124"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton13" inherits="SimpleMacrosActionButtonTemplate" id="13">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="27" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton14" inherits="SimpleMacrosActionButtonTemplate" id="14">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="79" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton15" inherits="SimpleMacrosActionButtonTemplate" id="15">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="131" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton16" inherits="SimpleMacrosActionButtonTemplate" id="16">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="183" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton17" inherits="SimpleMacrosActionButtonTemplate" id="17">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="235" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosButton18" inherits="SimpleMacrosActionButtonTemplate" id="18">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="287" y="-178"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SimpleMacrosButton_OnLoad();
+					</OnLoad>
+					<OnDragStart>
+						SimpleMacrosButton_OnDragStart();
+					</OnDragStart>
+					<OnMouseUp>
+						SimpleMacrosButton_OnMouseUp();
+					</OnMouseUp>
+					<OnClick>
+						SimpleMacrosButton_OnClick();
+					</OnClick>
+					<OnEnter>
+						SimpleMacrosButton_OnEnter();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<Button name="SimpleMacrosEditButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="124" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="72" y="-256"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Change Name/Icon");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosEditButton_OnClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosNamesButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="146" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="190" y="-290"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Button names: On");
+					</OnLoad>
+					<OnClick>
+						SimpleMacros_SetShowNames(not SimpleMacros_ShowNames);
+					</OnClick>
+					<OnEnter>
+						GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
+						GameTooltip:SetText("Show the macro name on its action button");
+						GameTooltip:Show();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosHelpButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="68" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="198" y="-256"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Help");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosHelp_Toggle();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Frame name="SimpleMacrosBodyBackground">
+				<Size>
+					<AbsDimension x="324" y="118"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="18" y="-306"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4"/>
+					</BackgroundInsets>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+				</Backdrop>
+				<Scripts>
+					<OnLoad>
+						this:SetBackdropColor(0, 0, 0, 0.8);
+						this:SetBackdropBorderColor(0.6, 0.6, 0.6);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<ScrollFrame name="SimpleMacrosBodyScrollFrame" inherits="ClassTrainerDetailScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="286" y="104"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="26" y="-313"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnMouseDown>
+						SimpleMacrosBodyEditBox:SetFocus();
+					</OnMouseDown>
+				</Scripts>
+				<ScrollChild>
+					<EditBox name="SimpleMacrosBodyEditBox" multiLine="true" letters="511" autoFocus="false">
+						<Size>
+							<AbsDimension x="286" y="104"/>
+						</Size>
+						<Scripts>
+							<OnTextChanged>
+								SimpleMacrosBodyEditBox_OnTextChanged();
+							</OnTextChanged>
+							<OnEscapePressed>
+								this:ClearFocus();
+							</OnEscapePressed>
+						</Scripts>
+						<FontString inherits="ChatFontNormal"/>
+					</EditBox>
+				</ScrollChild>
+			</ScrollFrame>
+			<Button name="SimpleMacrosSaveButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="268" y="-232"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Save");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosSaveButton_OnClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosCancelButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="268" y="-256"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Cancel");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosCancelButton_OnClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosShareButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="68" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="102" y="-464"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Share");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosShare_Toggle();
+					</OnClick>
+					<OnEnter>
+						GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
+						GameTooltip:SetText("Export or import a macro as text");
+						GameTooltip:Show();
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosDeleteButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="20" y="-464"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Delete");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosDeleteButton_OnClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosNewButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="176" y="-464"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("New");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosNewButton_OnClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosExitButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="80" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="260" y="-464"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Exit");
+					</OnLoad>
+					<OnClick>
+						HideUIPanel(SimpleMacrosFrame);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnShow>
+				SimpleMacrosVersion:SetText("v"..SIMPLEMACROS_VERSION);
+				SimpleMacrosVersion:SetAlpha(0.35);
+				SimpleMacrosFrame_OnShow();
+			</OnShow>
+			<OnHide>
+				SimpleMacrosFrame_OnHide();
+			</OnHide>
+		</Scripts>
+	</Frame>
+
+	<!-- Name and icon popup, next to the macro window -->
+	<Frame name="SimpleMacrosPopupFrame" toplevel="true" frameStrata="DIALOG" enableMouse="true" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="300" y="360"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="SimpleMacrosFrame" relativePoint="TOPRIGHT">
+				<Offset>
+					<AbsDimension x="-4" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="11" top="11" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="SimpleMacrosPopupFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="SimpleMacrosPopupFrameTitle" inherits="GameFontNormal" text="Name and Icon">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString inherits="GameFontNormalSmall" text="Name (max 16 letters):" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-30"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<Texture name="SimpleMacrosPopupSelectedIcon">
+					<Size>
+						<AbsDimension x="36" y="36"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="24" y="-74"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="SimpleMacrosPopupIconHint" inherits="GameFontHighlightSmall" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="210" y="30"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="68" y="-78"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="SimpleMacrosPopupPageText" inherits="GameFontNormalSmall" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="40"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame name="SimpleMacrosPopupNameBackground">
+				<Size>
+					<AbsDimension x="264" y="28"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="18" y="-42"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4"/>
+					</BackgroundInsets>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+				</Backdrop>
+				<Scripts>
+					<OnLoad>
+						this:SetBackdropColor(0, 0, 0, 0.8);
+						this:SetBackdropBorderColor(0.6, 0.6, 0.6);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<EditBox name="SimpleMacrosPopupNameEditBox" letters="16" autoFocus="false">
+				<Size>
+					<AbsDimension x="248" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="28" y="-46"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnEnterPressed>
+						SimpleMacrosPopup_Okay();
+					</OnEnterPressed>
+					<OnEscapePressed>
+						SimpleMacrosPopupFrame:Hide();
+					</OnEscapePressed>
+				</Scripts>
+				<FontString inherits="ChatFontNormal"/>
+			</EditBox>
+			<Frame name="SimpleMacrosPopupSearchBackground">
+				<Size>
+					<AbsDimension x="190" y="26"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="68" y="-281"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4"/>
+					</BackgroundInsets>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+				</Backdrop>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString inherits="GameFontNormalSmall" text="Search icons:" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="-4" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						this:SetBackdropColor(0, 0, 0, 0.8);
+						this:SetBackdropBorderColor(0.6, 0.6, 0.6);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<EditBox name="SimpleMacrosPopupSearchEditBox" letters="24" autoFocus="false">
+				<Size>
+					<AbsDimension x="174" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="76" y="-284"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnTextChanged>
+						SimpleMacrosPopup_Search(this:GetText());
+					</OnTextChanged>
+					<OnEnterPressed>
+						this:ClearFocus();
+					</OnEnterPressed>
+					<OnEscapePressed>
+						this:ClearFocus();
+					</OnEscapePressed>
+				</Scripts>
+				<FontString inherits="ChatFontNormal"/>
+			</EditBox>
+			<ScrollFrame name="SimpleMacrosPopupScroll" inherits="FauxScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="236" y="160"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="24" y="-118"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnVerticalScroll>
+						FauxScrollFrame_OnVerticalScroll(SIMPLEMACROS_POPUP_ROW, SimpleMacrosPopup_Update);
+					</OnVerticalScroll>
+				</Scripts>
+			</ScrollFrame>
+			<CheckButton name="SimpleMacrosPopupButton1" id="1">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="24" y="-120"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton2" id="2">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="74" y="-120"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton3" id="3">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="124" y="-120"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton4" id="4">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="174" y="-120"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton5" id="5">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="224" y="-120"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton6" id="6">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="24" y="-160"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton7" id="7">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="74" y="-160"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton8" id="8">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="124" y="-160"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton9" id="9">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="174" y="-160"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton10" id="10">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="224" y="-160"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton11" id="11">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="24" y="-200"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton12" id="12">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="74" y="-200"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton13" id="13">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="124" y="-200"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton14" id="14">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="174" y="-200"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton15" id="15">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="224" y="-200"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton16" id="16">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="24" y="-240"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton17" id="17">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="74" y="-240"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton18" id="18">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="124" y="-240"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton19" id="19">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="174" y="-240"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<CheckButton name="SimpleMacrosPopupButton20" id="20">
+				<Size>
+					<AbsDimension x="36" y="36"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="224" y="-240"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="$parentIcon"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnClick>
+						SimpleMacrosPopupButton_OnClick();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Quickslot2">
+					<Size>
+						<AbsDimension x="64" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="-1"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</NormalTexture>
+				<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
+				<CheckedTexture alphaMode="ADD" file="Interface\Buttons\CheckButtonHilight"/>
+			</CheckButton>
+			<Button name="SimpleMacrosPopupOkayButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="86" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="60" y="-322"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Okay");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosPopup_Okay();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosPopupCancelButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="86" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="154" y="-322"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Cancel");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosPopupFrame:Hide();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+	<Frame name="SimpleMacrosCarryFrame" frameStrata="TOOLTIP" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="36" y="36"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Scripts>
+			<OnUpdate>
+				SimpleMacrosCarry_Follow();
+			</OnUpdate>
+		</Scripts>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="SimpleMacrosCarryIcon">
+					<Size>
+						<AbsDimension x="36" y="36"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Button name="SimpleMacrosMenuButton" inherits="GameMenuButtonTemplate" parent="GameMenuFrame">
+		<Anchors>
+			<Anchor point="TOP" relativeTo="GameMenuButtonSoundOptions" relativePoint="BOTTOM">
+				<Offset>
+					<AbsDimension x="0" y="-1"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+				this:SetText("Macros");
+			</OnLoad>
+			<OnClick>
+				SimpleMacros_MenuClick();
+			</OnClick>
+		</Scripts>
+	</Button>
+	<Frame name="SimpleMacrosMenuWatcher" parent="GameMenuFrame">
+		<Scripts>
+			<OnShow>
+				SimpleMacros_AdjustMenu();
+			</OnShow>
+		</Scripts>
+	</Frame>
+
+	<!-- Help window: everything a macro can do -->
+	<Frame name="SimpleMacrosHelpFrame" toplevel="true" frameStrata="DIALOG" enableMouse="true" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="380" y="420"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="SimpleMacrosFrame" relativePoint="TOPRIGHT">
+				<Offset>
+					<AbsDimension x="-4" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="11" top="11" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="Macro Help">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="SimpleMacrosHelpCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-6" y="-6"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<ScrollFrame name="SimpleMacrosHelpScrollFrame" inherits="UIPanelScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="316" y="368"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="22" y="-28"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<ScrollChild>
+					<Frame name="SimpleMacrosHelpScrollChild">
+						<Size>
+							<AbsDimension x="316" y="368"/>
+						</Size>
+						<Layers>
+							<Layer level="ARTWORK">
+								<FontString name="SimpleMacrosHelpText" inherits="GameFontHighlight" justifyH="LEFT" justifyV="TOP">
+									<Size>
+										<AbsDimension x="310" y="0"/>
+									</Size>
+									<Anchors>
+										<Anchor point="TOPLEFT">
+											<Offset>
+												<AbsDimension x="2" y="-2"/>
+											</Offset>
+										</Anchor>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
+				</ScrollChild>
+			</ScrollFrame>
+		</Frames>
+		<Scripts>
+			<OnShow>
+				SimpleMacrosHelp_OnShow();
+			</OnShow>
+		</Scripts>
+	</Frame>
+
+	<Frame name="SimpleMacrosShareFrame" toplevel="true" frameStrata="DIALOG" enableMouse="true" hidden="true" parent="UIParent">
+		<Size>
+			<AbsDimension x="360" y="190"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="SimpleMacrosFrame" relativePoint="TOPRIGHT">
+				<Offset>
+					<AbsDimension x="-4" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="11" top="11" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="256" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="Export and Import">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString inherits="GameFontHighlightSmall" text="Export: click Export, then click the box and press Ctrl+A and Ctrl+C. Import: click the box, paste with Ctrl+V and click Import. The macro goes into the first free square of the open tab." justifyH="LEFT" justifyV="TOP">
+					<Size>
+						<AbsDimension x="316" y="48"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="22" y="-26"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="SimpleMacrosShareStatus" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="TOP">
+					<Size>
+						<AbsDimension x="316" y="30"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="22" y="-114"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="SimpleMacrosShareCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-6" y="-6"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Frame name="SimpleMacrosShareBackground">
+				<Size>
+					<AbsDimension x="316" y="28"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="22" y="-80"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4"/>
+					</BackgroundInsets>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+				</Backdrop>
+				<Scripts>
+					<OnLoad>
+						this:SetBackdropColor(0, 0, 0, 0.8);
+						this:SetBackdropBorderColor(0.6, 0.6, 0.6);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<EditBox name="SimpleMacrosShareBox" letters="4000" autoFocus="false">
+				<Size>
+					<AbsDimension x="300" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="30" y="-84"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnEnterPressed>
+						SimpleMacrosShare_Import();
+					</OnEnterPressed>
+					<OnEscapePressed>
+						SimpleMacrosShareFrame:Hide();
+					</OnEscapePressed>
+				</Scripts>
+				<FontString inherits="ChatFontNormal"/>
+			</EditBox>
+			<Button name="SimpleMacrosShareExportButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="90" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="46" y="-152"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Export");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosShare_Export();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosShareImportButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="90" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="140" y="-152"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Import");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosShare_Import();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="SimpleMacrosShareDoneButton" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="90" y="22"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="234" y="-152"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						this:SetText("Close");
+					</OnLoad>
+					<OnClick>
+						SimpleMacrosShareFrame:Hide();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+	<!-- Probes: the client gives frame and mouse positions in other units than SetPoint uses. -->
+	<Frame name="SimpleMacrosProbeScreen" parent="UIParent">
+		<Size>
+			<AbsDimension x="2" y="2"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOMLEFT" relativeTo="UIParent" relativePoint="BOTTOMLEFT"/>
+		</Anchors>
+	</Frame>
+	<Frame name="SimpleMacrosProbeBox" parent="UIParent">
+		<Size>
+			<AbsDimension x="100" y="100"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOMLEFT"/>
+		</Anchors>
+	</Frame>
+	<Frame name="SimpleMacrosProbeBoxTopLeft" parent="UIParent">
+		<Size>
+			<AbsDimension x="2" y="2"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="SimpleMacrosProbeBox" relativePoint="TOPLEFT"/>
+		</Anchors>
+	</Frame>
+	<Frame name="SimpleMacrosProbeBoxBottomRight" parent="UIParent">
+		<Size>
+			<AbsDimension x="2" y="2"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOMRIGHT" relativeTo="SimpleMacrosProbeBox" relativePoint="BOTTOMRIGHT"/>
+		</Anchors>
+	</Frame>
+
+	<!-- Catches clicks on the world while a macro is carried (below all other windows). -->
+	<Frame name="SimpleMacrosCatcher" frameStrata="BACKGROUND" enableMouse="true" hidden="true" parent="UIParent">
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="UIParent" relativePoint="TOPLEFT"/>
+			<Anchor point="BOTTOMRIGHT" relativeTo="UIParent" relativePoint="BOTTOMRIGHT"/>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+				tinsert(UISpecialFrames, "SimpleMacrosCatcher");
+			</OnLoad>
+			<OnHide>
+				if ( SimpleMacros_AssignRef ) then
+					SimpleMacros_ClearAssign();
+				end
+			</OnHide>
+			<OnMouseUp>
+				SimpleMacrosCatcher_OnMouseUp(arg1);
+			</OnMouseUp>
+		</Scripts>
+	</Frame>
+
+	<!-- Keeps the icons of macros on action buttons up to date (shown only while one is placed). -->
+	<Frame name="SimpleMacrosSlotFrame" hidden="true" parent="UIParent">
+		<Scripts>
+			<OnUpdate>
+				SimpleMacrosSlots_OnUpdate(arg1);
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+
+</Ui>
