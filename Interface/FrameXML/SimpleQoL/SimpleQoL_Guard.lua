@@ -368,11 +368,42 @@ function SimpleQoL_AutoTrackEvent()
 	end
 end
 
+-- Sitting: the cast was refused ("You need to be standing up"). No sit API in
+-- 0.5.3, so wait until the position changes (the character stood up and
+-- moved); without a position, try again every 30 seconds.
+function SimpleQoL_AutoTrackPos()
+	if ( GetPlayerMapPosition ) then
+		local x, y = GetPlayerMapPosition("player");
+		return x, y;
+	end
+	return nil, nil;
+end
+
+function SimpleQoL_AutoTrackSitPause()
+	SimpleQoL_SitX, SimpleQoL_SitY = SimpleQoL_AutoTrackPos();
+	SimpleQoL_SitTime = GetTime();
+	SimpleQoL_SitPaused = 1;
+end
+
+function SimpleQoL_AutoTrackSitCheck()
+	local x, y = SimpleQoL_AutoTrackPos();
+	if ( (x and (x ~= SimpleQoL_SitX or y ~= SimpleQoL_SitY) and (x ~= 0 or y ~= 0))
+			or GetTime() - SimpleQoL_SitTime > 30 ) then
+		SimpleQoL_SitPaused = nil;
+		return nil;
+	end
+	return 1;
+end
+
 function SimpleQoL_AutoTrackUpdate()
 	if ( not SimpleQoL_Loaded or GetTime() - SimpleQoL_AutoTrackTime < SimpleQoL_AutoTrackWait ) then
 		return;
 	end
 	SimpleQoL_AutoTrackTime = GetTime();
+	if ( SimpleQoL_SitPaused and SimpleQoL_AutoTrackSitCheck() ) then
+		SimpleQoL_AutoTrackWait = 2;
+		return;
+	end
 	SimpleQoL_AutoTrackWait = SIMPLEQOL_AUTOTRACK_SOON;
 	SimpleQoL_PauseAlphaTrack();
 	if ( not SimpleQoL_AutoTrackActive() ) then
@@ -760,6 +791,7 @@ SimpleQoL_MoneyMemo = {};
 -- items (SimpleQoL_Prices.lua), and prices seen at a vendor win over it.
 --------------------------------------------------------------------------------
 SimpleQoL_Prices = nil;            -- item name -> copper per item
+SimpleQoL_PricesKeep = {};         -- names whose price differs from the list: only these are saved
 SimpleQoL_PriceCount = nil;        -- stack size of the item in GameTooltip
 
 -- Item name of GameTooltip. This client puts a line like 0xF1300000000000F5
@@ -788,18 +820,43 @@ function SimpleQoL_PricesLoad()
 			break
 		end
 		SimpleQoL_Prices[name] = tonumber(price);
+		SimpleQoL_PricesKeep[name] = 1;
 		pos = e + 1;
+	end
+	-- Older versions saved every price seen: prices equal to the built-in
+	-- list are not needed and are removed from the save.
+	local list = SIMPLEQOL_PRICE_NAME;
+	if ( list ) then
+		local drop = {};
+		foreach(SimpleQoL_Prices, function(n, p)
+			if ( list[n] == p ) then
+				tinsert(drop, n);
+			end
+		end);
+		local i;
+		for i = 1, getn(drop) do
+			SimpleQoL_Prices[drop[i]] = nil;
+			SimpleQoL_PricesKeep[drop[i]] = nil;
+		end
+		if ( getn(drop) > 0 ) then
+			SimpleQoL_PricesSave();
+		end
 	end
 end
 
+-- Saves only the prices that differ from the built-in list (corrections).
 function SimpleQoL_PricesSave()
 	if ( not SimpleSave_Set ) then
 		return;
 	end
 	local text = "";
-	local name, price;
-	for name, price in SimpleQoL_Prices do
-		text = text..name.."="..price..";";
+	foreach(SimpleQoL_PricesKeep, function(name)
+		if ( SimpleQoL_Prices[name] ) then
+			text = text..name.."="..SimpleQoL_Prices[name]..";";
+		end
+	end);
+	if ( text == "" ) then
+		text = nil;
 	end
 	SimpleSave_Set("SimpleQoL", "Prices", text);
 end
@@ -812,9 +869,23 @@ function SimpleQoL_LearnPrice(money)
 	end
 	SimpleQoL_PricesLoad();
 	local unit = floor(money / count);
-	if ( unit > 0 and SimpleQoL_Prices[name] ~= unit and not strfind(name, "[=;]") ) then
-		SimpleQoL_Prices[name] = unit;
-		SimpleQoL_PricesSave();
+	if ( unit > 0 and not strfind(name, "[=;]") ) then
+		local builtin = SIMPLEQOL_PRICE_NAME and SIMPLEQOL_PRICE_NAME[name];
+		if ( builtin == unit ) then
+			-- Same as the list: nothing to remember (a saved correction goes).
+			SimpleQoL_Prices[name] = nil;
+			if ( SimpleQoL_PricesKeep[name] ) then
+				SimpleQoL_PricesKeep[name] = nil;
+				SimpleQoL_PricesSave();
+			end
+		elseif ( SimpleQoL_Prices[name] ~= unit ) then
+			SimpleQoL_Prices[name] = unit;
+			-- An item missing in the list is remembered for this session only.
+			if ( builtin ) then
+				SimpleQoL_PricesKeep[name] = 1;
+				SimpleQoL_PricesSave();
+			end
+		end
 	end
 end
 

@@ -14,7 +14,7 @@
 -- no pairs/ipairs/type, ASCII only.
 --------------------------------------------------------------------------------
 
-SIMPLEQOL_VERSION = "3.01";
+SIMPLEQOL_VERSION = "3.07";
 
 -- Feature list: key, label, default (1 = on), tooltip. Order = check boxes.
 SIMPLEQOL_FEATURES = {
@@ -57,8 +57,9 @@ SIMPLEQOL_FEATURES = {
 	{ "shareguild", "Share position (guild)", 1, "Shares your position with your guild only (SimpleQoL users who share too). Not needed when Share position (faction) is on." },
 	{ "clock",     "Show clock", nil, "Shows the time next to FPS and Ping (same place, Shift + drag to move). Not used when AlphaUI's clock is on." },
 	{ "targetdist", "Show target distance", 1, "Shows the distance to your target in yards above its portrait. Replaces AlphaUI's Target Distance, which stays off while SimpleQoL is installed." },
+	{ "auioff", "Turn off AlphaUI Class Portraits and Clock", 1, "With AlphaUI: turns off its Class Portraits and Clock at login on every character (the normal portraits and our clock setting are used). Turn this off to use them." },
 };
-SIMPLEQOL_NUM_FEATURES = 39;
+SIMPLEQOL_NUM_FEATURES = 40;
 SIMPLEQOL_RESTOCK_ROWS = 3;        -- rows shown; more items scroll
 SimpleQoL_RestockOffset = 0;
 SIMPLEQOL_PCT_MIN = 1;             -- low health percent boxes (Bloodstone, emergency shield)
@@ -470,13 +471,27 @@ function SimpleQoL_Load()
 	SimpleQoL_UpdateStats();
 end
 
+-- Only a value that differs from the default is saved (saves space; a
+-- missing value means the default).
+SimpleQoL_FeatureDefault = nil;
 function SimpleQoL_SaveFeature(key)
-	if ( SimpleSave_Set ) then
-		if ( SimpleQoL_On[key] ) then
-			SimpleSave_Set("SimpleQoL", key, "1");
-		else
-			SimpleSave_Set("SimpleQoL", key, "0");
+	if ( not SimpleSave_Set ) then
+		return;
+	end
+	if ( not SimpleQoL_FeatureDefault ) then
+		SimpleQoL_FeatureDefault = {};
+		local i;
+		for i = 1, SIMPLEQOL_NUM_FEATURES do
+			SimpleQoL_FeatureDefault[SIMPLEQOL_FEATURES[i][1]] = SIMPLEQOL_FEATURES[i][3];
 		end
+	end
+	local on = SimpleQoL_On[key] and 1 or nil;
+	if ( on == SimpleQoL_FeatureDefault[key] ) then
+		SimpleSave_Set("SimpleQoL", key, nil);
+	elseif ( on ) then
+		SimpleSave_Set("SimpleQoL", key, "1");
+	else
+		SimpleSave_Set("SimpleQoL", key, "0");
 	end
 end
 
@@ -1231,6 +1246,11 @@ function UIErrorsFrame_OnEvent(event, message)
 		-- dismount and no message.
 		return;
 	end
+	-- Sitting: Auto Track pauses until the character moves (no message spam).
+	if ( event == "UI_ERROR_MESSAGE" and message and strfind(strlower(message), "standing up", 1, 1) and SimpleQoL_TrackingCastRecent and SimpleQoL_TrackingCastRecent() ) then
+		SimpleQoL_AutoTrackSitPause();
+		return;
+	end
 	if ( event == "UI_ERROR_MESSAGE" and SimpleQoL_On["dismount"] and SimpleQoL_IsMountedError(message) and SimpleQoL_Dismount ) then
 		SimpleQoL_Dismount();
 	end
@@ -1880,6 +1900,15 @@ function SimpleQoLOptions_Update()
 				check:Show();
 			end
 		end
+		if ( key == "auioff" ) then
+			local present = SimpleQoL_AlphaPresent();
+			if ( present ) then
+				check:Show();
+			else
+				check:Hide();
+			end
+			SimpleQoLOptions_AlphaRow(present);
+		end
 		if ( key == "shield" ) then
 			local class = SimpleQoL_ShieldClass();
 			if ( class ) then
@@ -1962,6 +1991,30 @@ function SimpleQoLOptions_Update()
 	end
 end
 
+-- 1 when AlphaUI is installed with its Class Portraits or Clock module.
+function SimpleQoL_AlphaPresent()
+	if ( Main and Main.GetModule and (Main.GetModule("class_portraits") or Main.GetModule("clock")) ) then
+		return 1;
+	end
+	return nil;
+end
+
+-- The extra row at the bottom of the window (only with AlphaUI): the window
+-- is a little taller and the two buttons move down.
+SimpleQoL_AlphaRowOn = nil;
+function SimpleQoLOptions_AlphaRow(on)
+	if ( on == SimpleQoL_AlphaRowOn ) then
+		return;
+	end
+	SimpleQoL_AlphaRowOn = on;
+	local dy = on and -24 or 0;
+	SimpleQoLOptionsFrame:SetHeight(on and 750 or 726);
+	SimpleQoLOptionsDefaults:ClearAllPoints();
+	SimpleQoLOptionsDefaults:SetPoint("TOPLEFT", "SimpleQoLOptionsFrame", "TOPLEFT", 20, -682 + dy);
+	SimpleQoLOptionsResetFrames:ClearAllPoints();
+	SimpleQoLOptionsResetFrames:SetPoint("TOPLEFT", "SimpleQoLOptionsFrame", "TOPLEFT", 120, -682 + dy);
+end
+
 function SimpleQoLOptions_Toggle(index)
 	local key = SIMPLEQOL_FEATURES[index][1];
 	if ( not SimpleQoL_FeatureUsable(key) ) then
@@ -1974,6 +2027,9 @@ function SimpleQoLOptions_Toggle(index)
 		SimpleQoL_On[key] = 1;
 	end
 	SimpleQoL_SaveFeature(key);
+	if ( key == "auioff" and SimpleQoL_On[key] and SimpleQoL_AlphaAgain ) then
+		SimpleQoL_AlphaAgain();
+	end
 	if ( SIMPLEQOL_MODULES[key] ) then
 		SimpleQoL_Print(SIMPLEQOL_FEATURES[index][2].." is turned "..(SimpleQoL_On[key] and "on" or "off").." the next time you log in.");
 	end

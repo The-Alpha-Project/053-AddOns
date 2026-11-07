@@ -17,7 +17,7 @@
 -- frames exist, so layout is done on the first OnShow.
 --------------------------------------------------------------------------------
 
-SIMPLEMAP_VERSION = "4.70";
+SIMPLEMAP_VERSION = "4.80";
 SIMPLEMAP_BLACK_TILE = "Interface\\Buttons\\WHITE8X8"; -- tinted black, see SimpleMap_UpdateMap
 SIMPLEMAP_MAP_WIDTH = 1002;          -- stock map size at scale 1
 SIMPLEMAP_MAP_HEIGHT = 668;
@@ -49,7 +49,7 @@ SimpleMap_ShowTrainers = 1;
 SimpleMap_ShowTravel = 1;            -- flight masters, boats, zeppelins
 SimpleMap_ShowNPCs = 1;              -- any of the three (kept in step by SimpleMap_NPCSync)
 SimpleMap_ShowRares = nil;           -- rare mobs (off by default)
-SIMPLEMAP_NUM_NPCS = 200;            -- marker frames in the XML
+SIMPLEMAP_NUM_NPCS = 320;            -- marker frames in the XML
 SIMPLEMAP_NUM_OTHERS = 20;           -- other SimpleQoL users
 SimpleMap_OthersTime = 0;
 
@@ -1339,6 +1339,7 @@ function SimpleMap_UpdatePOIs()
 				poi:ClearAllPoints();
 				poi:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
 				poi.name = name;
+				poi.fx, poi.fy = fx, fy;
 			end
 		end
 		if ( x ) then
@@ -1354,7 +1355,7 @@ end
 -- entrances, hunter pet trainers, class trainers and binders on zone and
 -- continent maps (the continents also cover zones that have no map of their own).
 SIMPLEMAP_MEDIA = "Interface\\FrameXML\\SimpleMap\\Media\\";
-SIMPLEMAP_NPC_ICONS = { F = "Flight", B = "Boat", Z = "Zeppelin", N = "Binder", P = "PetTrainer", D = "Dungeon", R = "Rare" };
+SIMPLEMAP_NPC_ICONS = { F = "Flight", B = "Boat", Z = "Zeppelin", N = "Binder", P = "PetTrainer", D = "Dungeon", R = "Rare", Q = "QuestAvail", A = "QuestDone" };
 
 -- The symbols of a map: travel / trainers and rare mobs, as switched on.
 -- Both together are joined once per map and kept.
@@ -1365,6 +1366,26 @@ function SimpleMap_NPCList(map)
 	end
 	local npcs = SimpleMap_ShowNPCs and SIMPLEMAP_NPCS and SIMPLEMAP_NPCS[map];
 	local rares = SimpleMap_ShowRares and SIMPLEMAP_RARES and SIMPLEMAP_RARES[map];
+	-- Quest markers change with your level and log: joined again each time.
+	local quests = SimpleMap_ShowQuests and SimpleMap_QuestList(map);
+	if ( quests and getn(quests) > 0 ) then
+		local all = {};
+		local n, i;
+		if ( npcs ) then
+			for i = 1, getn(npcs) do
+				tinsert(all, npcs[i]);
+			end
+		end
+		if ( rares ) then
+			for i = 1, getn(rares) do
+				tinsert(all, rares[i]);
+			end
+		end
+		for i = 1, getn(quests) do
+			tinsert(all, quests[i]);
+		end
+		return all;
+	end
 	if ( not rares ) then
 		return npcs;
 	end
@@ -1423,6 +1444,9 @@ end
 
 function SimpleMap_NPCVisible(entry, myClass, side)
 	local kind = entry[1];
+	if ( kind == "Q" or kind == "A" ) then
+		return (not entry[7] or entry[7] == "" or entry[7] == side) and 1 or nil;
+	end
 	if ( kind == "N" and not SimpleMap_ShowBinders ) then
 		return nil;
 	end
@@ -1462,6 +1486,37 @@ SimpleMap_NPCFrames = {};
 SimpleMap_NPCIconFrames = {};
 SimpleMap_NPCShownCount = SIMPLEMAP_NUM_NPCS;
 
+-- While panning: the symbols already shown only move (every frame, so they
+-- stay on the map); which ones are shown is worked out by the slower full
+-- update (SimpleMap_UpdatePOIs).
+function SimpleMap_PanSymbols()
+	local i, m, x, y;
+	for i = 1, SimpleMap_NPCShownCount do
+		m = SimpleMap_NPCFrames[i];
+		if ( m and m.fx and m:IsShown() ) then
+			x, y = SimpleMap_ToView(m.fx, m.fy);
+			if ( x ) then
+				m:ClearAllPoints();
+				m:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
+			else
+				m:Hide();
+			end
+		end
+	end
+	for i = 1, SIMPLEMAP_NUM_POIS do
+		m = SimpleMap_POIFrames[i];
+		if ( m and m.fx and m:IsShown() ) then
+			x, y = SimpleMap_ToView(m.fx, m.fy);
+			if ( x ) then
+				m:ClearAllPoints();
+				m:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
+			else
+				m:Hide();
+			end
+		end
+	end
+end
+
 function SimpleMap_UpdateNPCs()
 	local myClass = SimpleMap_PlayerClassId();
 	local side = SimpleMap_PlayerSide();
@@ -1499,6 +1554,7 @@ function SimpleMap_UpdateNPCs()
 				if ( marker.entry == entry ) then
 					marker:ClearAllPoints();
 					marker:SetPoint("CENTER", "SimpleMapButton", "TOPLEFT", x, y);
+					marker.fx, marker.fy = entry[2], entry[3];
 					marker:Show();
 				else
 					marker:Hide();
@@ -1528,6 +1584,10 @@ function SimpleMap_NPC_OnEnter()
 		return;
 	end
 	SimpleTooltip_SetOwner(this);
+	if ( entry[1] == "Q" or entry[1] == "A" ) then
+		SimpleMap_QuestTooltip(entry);
+		return;
+	end
 	if ( entry[1] == "R" ) then
 		GameTooltip:SetText(entry[5], 0.85, 0.85, 0.95);
 		GameTooltip:AddLine("|cffffffff"..entry[4].."|r");
@@ -1614,7 +1674,7 @@ function SimpleMap_MinimapYards()
 	end
 	return SIMPLEMAP_MINIMAP_YARDS[zoom + 1] or SIMPLEMAP_MINIMAP_YARDS[1];
 end
-SIMPLEMAP_NUM_MINI = 30;
+SIMPLEMAP_NUM_MINI = 45;
 -- The marker frames and their icons, looked up once when first needed (the
 -- frames are made by the XML after this file is read).
 SimpleMap_MiniFrames = nil;
@@ -1639,15 +1699,27 @@ function SimpleMap_UpdateMinimapNPCs()
 	local map = GetMapInfo();
 	local list = SimpleMap_NPCList(map);
 	local size = map and SIMPLEMAP_ZONE_YARDS[map];
-	if ( (SimpleMap_ShowNPCs or SimpleMap_ShowRares) and (not x or (x == 0 and y == 0)) ) then
-		return;                      -- not your zone on the map: keep what is shown
+	if ( (SimpleMap_ShowNPCs or SimpleMap_ShowRares or SimpleMap_ShowQuests) and (not x or (x == 0 and y == 0)) ) then
+		-- No position (indoors in an instance, a zone without a map): the
+		-- markers would stay at the same place on the minimap and seem to
+		-- follow you, so they are removed. Kept only while a map window shows
+		-- another zone (that also gives no position).
+		if ( not (SimpleMapFrame and SimpleMapFrame:IsVisible()) and SimpleMap_MiniShown > 0 ) then
+			local h;
+			for h = 1, SimpleMap_MiniShown do
+				SimpleMap_MiniFrames[h]:Hide();
+			end
+			SimpleMap_MiniShown = 0;
+			SimpleMap_MiniX, SimpleMap_MiniY, SimpleMap_MiniMap = nil, nil, nil;
+		end
+		return;
 	end
 	-- Nothing changed (standing still, same zoom): the markers stay.
 	local zoomNow = 0;
 	if ( Minimap and Minimap.GetZoom ) then
 		zoomNow = Minimap:GetZoom();
 	end
-	local flags = (SimpleMap_ShowNPCs and 1 or 0) + (SimpleMap_ShowRares and 2 or 0) + (SimpleMap_MinimapIsInside() and 4 or 0);
+	local flags = (SimpleMap_ShowNPCs and 1 or 0) + (SimpleMap_ShowRares and 2 or 0) + (SimpleMap_MinimapIsInside() and 4 or 0) + (SimpleMap_ShowQuests and 8 + SimpleMap_QStamp * 16 or 0);
 	if ( x == SimpleMap_MiniX and y == SimpleMap_MiniY and map == SimpleMap_MiniMap and zoomNow == SimpleMap_MiniZoom and flags == SimpleMap_MiniFlags ) then
 		return;
 	end
@@ -1855,9 +1927,11 @@ function SimpleMap_OnUpdate()
 			-- times a second (close enough to look like they track the pan,
 			-- instead of visibly lagging behind and "jumping" into place) and
 			-- once more the instant the drag ends.
-			if ( not SimpleMap_PanPOITime or GetTime() - SimpleMap_PanPOITime >= 0.03 ) then
+			if ( not SimpleMap_PanPOITime or GetTime() - SimpleMap_PanPOITime >= 0.15 ) then
 				SimpleMap_PanPOITime = GetTime();
 				SimpleMap_UpdatePOIs();
+			else
+				SimpleMap_PanSymbols();
 			end
 		end
 	end
@@ -2166,6 +2240,9 @@ function SimpleMap_OnMouseDown(mouseButton)
 	-- mouse tracking on the same button left the panel "holding" the cursor
 	-- after a plain click, panning on mouse move with no button held.
 	if ( mouseButton == "LeftButton" and IsShiftKeyDown() ) then
+		if ( SimpleMap_ShiftMarkerDown() ) then
+			return;
+		end
 		SimpleMap_MoveStart();
 		return;
 	end
@@ -2344,6 +2421,33 @@ function SimpleMap_ContinentDropDown_OnLoad()
 	UIDropDownMenu_Refresh();
 end
 
+-- The Continent and Zone lists open above everything on the map (markers
+-- sit on higher frame levels than a list gets by default).
+function SimpleMap_DropRaise(list)
+	list:SetFrameLevel(120);
+	local name = list:GetName();
+	local i;
+	for i = 1, 40 do
+		local b = getglobal(name.."Button"..i);
+		if ( not b ) then
+			return;
+		end
+		b:SetFrameLevel(121);
+	end
+end
+
+if ( ToggleDropDownMenu and not SimpleMap_ToggleDropDownMenu ) then
+	SimpleMap_ToggleDropDownMenu = ToggleDropDownMenu;
+	function ToggleDropDownMenu()
+		SimpleMap_ToggleDropDownMenu();
+		local owner = this and this:GetParent();
+		local name = owner and owner:GetName();
+		if ( name == "SimpleMapContinentDropDown" or name == "SimpleMapZoneDropDown" ) then
+			SimpleMap_DropRaise(getglobal(name.."List1"));
+		end
+	end
+end
+
 function SimpleMap_ZoneDropDown_OnLoad()
 	this:RegisterEvent("WORLD_MAP_UPDATE");
 	UIDropDownMenu_SetWidth(130);
@@ -2439,6 +2543,10 @@ function SimpleMap_MinimapCoords_OnLoad()
 	this:RegisterEvent("CHAT_MSG_SYSTEM");
 	this:RegisterEvent("UI_INFO_MESSAGE");
 	this:RegisterEvent("PLAYER_ALIVE");
+	this:RegisterEvent("QUEST_LOG_UPDATE");
+	this:RegisterEvent("PLAYER_LEVEL_UP");
+	this:RegisterEvent("QUEST_GREETING");
+	this:RegisterEvent("QUEST_DETAIL");
 end
 
 --------------------------------------------------------------------------------
@@ -2543,6 +2651,17 @@ function SimpleMap_BindUpdate()
 end
 
 function SimpleMap_MinimapCoords_OnEvent()
+	if ( event == "QUEST_LOG_UPDATE" or event == "PLAYER_LEVEL_UP" ) then
+		SimpleMap_QuestEvent(event);
+		return;
+	end
+	if ( event == "QUEST_GREETING" or event == "QUEST_DETAIL" ) then
+		SimpleMap_QuestNPCEvent(event);
+		return;
+	end
+	if ( event == "PLAYER_ENTERING_WORLD" ) then
+		SimpleMap_QuestEvent(event);
+	end
 	SimpleMap_BindEvent(event, arg1);
 	if ( event == "CHAT_MSG_SYSTEM" or event == "UI_INFO_MESSAGE" or event == "PLAYER_ALIVE" ) then
 		return;
@@ -2561,7 +2680,7 @@ function SimpleMap_ZoneCheck()
 		return;
 	end
 	SimpleMap_ZoneCheckTime = nil;
-	if ( (SimpleMap_MinimapCoords or SimpleMap_ShowNPCs or SimpleMap_ShowRares) and not SimpleMapFrame:IsVisible() and not SimpleMap_HasPosition() ) then
+	if ( (SimpleMap_MinimapCoords or SimpleMap_ShowNPCs or SimpleMap_ShowRares or SimpleMap_ShowQuests) and not SimpleMapFrame:IsVisible() and not SimpleMap_HasPosition() ) then
 		SimpleMap_FindWorldZone();
 	end
 end
@@ -2609,6 +2728,7 @@ function SimpleMap_MinimapCoords_OnUpdate(elapsed)
 	elseif ( SimpleMapFrame:IsVisible() and GetZoneText() ~= SimpleMap_MinZone ) then
 		SimpleMap_UpdateMinButton();
 	end
+	SimpleMap_QuestUpdate();
 	SimpleMap_UpdateMinimapNPCs();
 	-- AlphaUI's AtlasLoot switch is looked at once a second.
 	if ( GetTime() - (SimpleMap_AtlasTime or 0) > 1 ) then
@@ -2699,6 +2819,19 @@ function SimpleMapOptions_Update()
 	SimpleMapOptionsTrainers:SetChecked(SimpleMap_ShowTrainers and 1 or 0);
 	SimpleMapOptionsTravel:SetChecked(SimpleMap_ShowTravel and 1 or 0);
 	SimpleMapOptionsRares:SetChecked(SimpleMap_ShowRares and 1 or 0);
+	-- Quest markers keep a note in SimpleSave: without it the box is off.
+	local questText = getglobal("SimpleMapOptionsQuestsText");
+	if ( SimpleSave_SetChar ) then
+		SimpleMapOptionsQuests:Enable();
+		questText:SetText("Quest markers");
+		questText:SetWidth(190);
+		SimpleMapOptionsQuests:SetChecked(SimpleMap_ShowQuests and 1 or 0);
+	else
+		SimpleMapOptionsQuests:Disable();
+		SimpleMapOptionsQuests:SetChecked(0);
+		questText:SetText("|cff808080Quest markers (Requires SimpleSave)|r");
+		questText:SetWidth(222);
+	end
 	SimpleMapOptionsOre:SetChecked(SimpleMap_RememberOre and 1 or 0);
 	SimpleMapOptionsHerbs:SetChecked(SimpleMap_RememberHerbs and 1 or 0);
 	SimpleMapOptionsChests:SetChecked(SimpleMap_RememberChests and 1 or 0);
@@ -2731,6 +2864,15 @@ function SimpleMapOptions_Toggle_Setting(which)
 		SimpleMap_UpdateNPCs();
 	elseif ( which == "rares" ) then
 		SimpleMap_ShowRares = not SimpleMap_ShowRares and 1 or nil;
+		SimpleMap_UpdateNPCs();
+	elseif ( which == "quests" ) then
+		if ( not SimpleSave_SetChar ) then
+			SimpleMap_ShowQuests = nil;
+			SimpleMapOptions_Update();
+			return;
+		end
+		SimpleMap_ShowQuests = not SimpleMap_ShowQuests and 1 or nil;
+		SimpleMap_QuestsChanged();
 		SimpleMap_UpdateNPCs();
 	elseif ( which == "ore" ) then
 		SimpleMap_RememberOre = not SimpleMap_RememberOre and 1 or nil;
@@ -2776,6 +2918,7 @@ function SimpleMap_SaveSettings()
 	SimpleSave_Set("SimpleMap", "Trainers", SimpleMap_FlagText(SimpleMap_ShowTrainers));
 	SimpleSave_Set("SimpleMap", "Travel", SimpleMap_FlagText(SimpleMap_ShowTravel));
 	SimpleSave_Set("SimpleMap", "Rares", SimpleMap_FlagText(SimpleMap_ShowRares));
+	SimpleSave_Set("SimpleMap", "Quests", SimpleMap_ShowQuests and "1" or nil);
 	SimpleSave_Set("SimpleMap", "Ore", SimpleMap_FlagText(SimpleMap_RememberOre));
 	SimpleSave_Set("SimpleMap", "Herbs", SimpleMap_FlagText(SimpleMap_RememberHerbs));
 	SimpleSave_Set("SimpleMap", "Chests", SimpleMap_FlagText(SimpleMap_RememberChests));
@@ -2806,6 +2949,10 @@ function SimpleMap_LoadSettings()
 	SimpleMap_ShowTravel = SimpleMap_LoadFlag("Travel", oldNPCs);
 	SimpleMap_NPCSync();
 	SimpleMap_ShowRares = SimpleMap_LoadFlag("Rares", SimpleMap_ShowRares);
+	SimpleMap_ShowQuests = SimpleMap_LoadFlag("Quests", nil);
+	if ( SimpleMap_ShowQuests ) then
+		SimpleMap_QuestsChanged();
+	end
 	-- The old single setting "Nodes" is the start value of the three.
 	local oldNodes = SimpleMap_LoadFlag("Nodes", nil);
 	SimpleMap_RememberOre = SimpleMap_LoadFlag("Ore", oldNodes);

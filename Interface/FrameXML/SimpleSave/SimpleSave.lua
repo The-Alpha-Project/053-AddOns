@@ -83,7 +83,7 @@ end
 if ( SIMPLESAVE_VERSION and SimpleSave_VersionValue(SIMPLESAVE_VERSION) >= SimpleSave_VersionValue("1.12") ) then
 	return;
 end
-SIMPLESAVE_VERSION = "1.22";
+SIMPLESAVE_VERSION = "1.24";
 SIMPLESAVE_FORMAT = "1";          -- old format (read only, see below)
 SIMPLESAVE_FORMAT2 = "2";
 SIMPLESAVE_B36 = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -356,6 +356,47 @@ function SimpleSave_Decode(text)
 	return result;
 end
 
+-- Addon names are shortened in the saved text ("SimpleQoL@Name" -> "Q" + "@Name")
+-- to save keys. Old saves with the long names are still read.
+SIMPLESAVE_ABBREV = { SimpleQoL = "Q", SimpleMap = "M", SimpleMacros = "X", SimpleChat = "C",
+	SimpleWalk = "W", ActionBars = "A", IEF = "I", SimpleGM = "G" };
+SIMPLESAVE_ABBREV_BACK = {};
+foreach(SIMPLESAVE_ABBREV, function(name, code) SIMPLESAVE_ABBREV_BACK[code] = name; end);
+
+function SimpleSave_EncodeAddon(addon)
+	local at = strfind(addon, "@", 1, 1);
+	local base = addon;
+	local rest = "";
+	if ( at ) then
+		base = strsub(addon, 1, at - 1);
+		rest = strsub(addon, at);
+	end
+	local code = SIMPLESAVE_ABBREV[base];
+	if ( code ) then
+		return code..SimpleSave_Encode(rest);
+	end
+	if ( SIMPLESAVE_ABBREV_BACK[base] ) then
+		-- A real addon named like a code: its letter is escaped.
+		return "="..SimpleSave_Hex2(strbyte(base, 1))..SimpleSave_Encode(strsub(base, 2))..SimpleSave_Encode(rest);
+	end
+	return SimpleSave_Encode(addon);
+end
+
+-- Returns the addon name, or nil if the text is not valid.
+function SimpleSave_DecodeAddon(field)
+	local s, e, lead = strfind(field, "^([A-Za-z0-9]*)");
+	local rest = strsub(field, e + 1);
+	local name = SIMPLESAVE_ABBREV_BACK[lead];
+	if ( name and (rest == "" or strsub(rest, 1, 1) == "=") ) then
+		rest = SimpleSave_Decode(rest);
+		if ( not rest ) then
+			return nil;
+		end
+		return name..rest;
+	end
+	return SimpleSave_Decode(field);
+end
+
 function SimpleSave_Checksum(text)
 	local sum = 7;
 	local length = strlen(text);
@@ -440,7 +481,7 @@ function SimpleSave_BuildRecords()
 	local records = {};
 	foreach(SimpleSave_Data, function(addon, values)
 		foreach(values, function(name, value)
-			tinsert(records, SimpleSave_Encode(addon).."."..SimpleSave_Encode(name).."."..SimpleSave_Encode(value));
+			tinsert(records, SimpleSave_EncodeAddon(addon).."."..SimpleSave_Encode(name).."."..SimpleSave_Encode(value));
 		end);
 	end);
 	SimpleSave_SortList(records);
@@ -486,7 +527,8 @@ end
 --     text never has to be built (h(A+B) = h(A) * 31^len(B) + h0(B), mod 65521)
 --------------------------------------------------------------------------------
 
-SimpleSave_EncCache = {};          -- text -> encoded text (addon and value names)
+SimpleSave_EncCache = {};          -- text -> encoded text (value names)
+SimpleSave_AddonCache = {};        -- addon -> encoded addon
 SimpleSave_RecCache = {};          -- id "addon.name" -> { value, record, hash, power }
 SimpleSave_SortedIds = nil;        -- sorted ids of the last fast build
 
@@ -495,6 +537,15 @@ function SimpleSave_EncodeCached(text)
 	if ( not e ) then
 		e = SimpleSave_Encode(text);
 		SimpleSave_EncCache[text] = e;
+	end
+	return e;
+end
+
+function SimpleSave_EncodeAddonCached(addon)
+	local e = SimpleSave_AddonCache[addon];
+	if ( not e ) then
+		e = SimpleSave_EncodeAddon(addon);
+		SimpleSave_AddonCache[addon] = e;
 	end
 	return e;
 end
@@ -517,7 +568,7 @@ function SimpleSave_FastRecords()
 	local count = 0;
 	local added = nil;
 	foreach(SimpleSave_Data, function(addon, values)
-		local ea = SimpleSave_EncodeCached(addon);
+		local ea = SimpleSave_EncodeAddonCached(addon);
 		foreach(values, function(name, value)
 			local id = ea.."."..SimpleSave_EncodeCached(name);
 			local c = SimpleSave_RecCache[id];
@@ -602,7 +653,7 @@ function SimpleSave_ParseStream(stream)
 		if ( getn(fields) ~= 3 ) then
 			return nil, "bad record "..i;
 		end
-		addon = SimpleSave_Decode(fields[1]);
+		addon = SimpleSave_DecodeAddon(fields[1]);
 		name = SimpleSave_Decode(fields[2]);
 		value = SimpleSave_Decode(fields[3]);
 		if ( not addon or not name or not value ) then
@@ -839,6 +890,11 @@ function SimpleSave_Load()
 		end
 		SimpleSave_Chunks = SimpleSave_KeyCount - 1;
 		SimpleSave_Bytes = strlen(stream);
+		if ( SimpleSave_Migrate(ids) ) then
+			-- Written again soon, in the short format.
+			SimpleSave_MarkDirty();
+		end
+		SimpleSave_WarnFull();
 	else
 		SimpleSave_SetBlocked(stream, raw);
 		return;
@@ -885,6 +941,207 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Capacity, usage and clean-up
+--------------------------------------------------------------------------------
+
+-- Keys one value needs (the whole record is cut into pieces of 25 characters).
+function SimpleSave_RecordKeys(addon, name, value)
+	local n = strlen(SimpleSave_EncodeAddon(addon)) + strlen(SimpleSave_Encode(name)) + strlen(SimpleSave_Encode(value)) + 2;
+	return ceil(n / SIMPLESAVE_PAYLOAD2);
+end
+
+-- Keys used now by all data (without the header key).
+function SimpleSave_KeysNeeded()
+	local total = 0;
+	local records = SimpleSave_FastRecords();
+	local i;
+	for i = 1, getn(records) do
+		total = total + ceil(strlen(records[i]) / SIMPLESAVE_PAYLOAD2);
+	end
+	return total;
+end
+
+-- 1 when the current data fits (checked before a save is promised to the player).
+function SimpleSave_WouldFit()
+	if ( not SimpleSave_Loaded or SimpleSave_Blocked ) then
+		return nil;
+	end
+	return SimpleSave_KeysNeeded() <= SIMPLESAVE_MAX_CHUNKS and 1 or nil;
+end
+
+-- Name of the character in an "addon@Name" key, or nil.
+function SimpleSave_CharOf(addon)
+	local at = strfind(addon, "@", 1, 1);
+	if ( at ) then
+		return strsub(addon, at + 1);
+	end
+	return nil;
+end
+
+-- Biggest users of the space: { { text, keys }, ... } sorted, biggest first.
+-- All characters together count as one line.
+function SimpleSave_UsageList()
+	local groups = {};
+	local order = {};
+	foreach(SimpleSave_Data, function(addon, values)
+		local label = addon;
+		if ( SimpleSave_CharOf(addon) ) then
+			label = "characters";
+		end
+		if ( not groups[label] ) then
+			groups[label] = 0;
+			tinsert(order, label);
+		end
+		foreach(values, function(name, value)
+			groups[label] = groups[label] + SimpleSave_RecordKeys(addon, name, value);
+		end);
+	end);
+	local list = {};
+	local i, j, entry;
+	for i = 1, getn(order) do
+		entry = { order[i], groups[order[i]] };
+		j = getn(list);
+		tinsert(list, entry);
+		while ( j >= 1 and list[j][2] < entry[2] ) do
+			list[j + 1] = list[j];
+			list[j] = entry;
+			j = j - 1;
+		end
+	end
+	return list;
+end
+
+-- Characters with saved data: { { name, keys, entries }, ... }, biggest first.
+function SimpleSave_CharList()
+	local chars = {};
+	local order = {};
+	foreach(SimpleSave_Data, function(addon, values)
+		local who = SimpleSave_CharOf(addon);
+		if ( who ) then
+			if ( not chars[who] ) then
+				chars[who] = { who, 0, 0 };
+				tinsert(order, who);
+			end
+			foreach(values, function(name, value)
+				chars[who][2] = chars[who][2] + SimpleSave_RecordKeys(addon, name, value);
+				chars[who][3] = chars[who][3] + 1;
+			end);
+		end
+	end);
+	local list = {};
+	local i, j, entry;
+	for i = 1, getn(order) do
+		entry = chars[order[i]];
+		tinsert(list, entry);
+		j = getn(list) - 1;
+		while ( j >= 1 and list[j][2] < entry[2] ) do
+			list[j + 1] = list[j];
+			list[j] = entry;
+			j = j - 1;
+		end
+	end
+	return list;
+end
+
+-- Removes all saved data of one character (who = name) or of every character
+-- except the current one (who = nil). Returns the number of values removed.
+function SimpleSave_ForgetChars(who)
+	local current = UnitName("player");
+	local remove = {};
+	foreach(SimpleSave_Data, function(addon)
+		local c = SimpleSave_CharOf(addon);
+		if ( c ) then
+			if ( who and strlower(c) == strlower(who) ) then
+				tinsert(remove, addon);
+			elseif ( not who and c ~= current ) then
+				tinsert(remove, addon);
+			end
+		end
+	end);
+	local count = 0;
+	local i;
+	for i = 1, getn(remove) do
+		foreach(SimpleSave_Data[remove[i]], function() count = count + 1; end);
+		SimpleSave_Data[remove[i]] = nil;
+	end
+	if ( count > 0 ) then
+		SimpleSave_MarkDirty();
+	end
+	return count;
+end
+
+-- Values that older versions saved and nothing uses any more.
+SIMPLESAVE_OBSOLETE = { "AUIPortraits", "AUIClock" };
+
+-- Called once after the save is read. Returns 1 when something was removed
+-- or the save still has the long addon names (it is then written again).
+function SimpleSave_Migrate(ids)
+	local changed = nil;
+	local remove = {};
+	foreach(SimpleSave_Data, function(addon, values)
+		if ( strfind(addon, "^SimpleQoL@") ) then
+			local i;
+			for i = 1, getn(SIMPLESAVE_OBSOLETE) do
+				if ( values[SIMPLESAVE_OBSOLETE[i]] ~= nil ) then
+					values[SIMPLESAVE_OBSOLETE[i]] = nil;
+					changed = 1;
+				end
+			end
+			if ( not SimpleSave_HasAny(values) ) then
+				tinsert(remove, addon);
+			end
+		end
+	end);
+	local i;
+	for i = 1, getn(remove) do
+		SimpleSave_Data[remove[i]] = nil;
+	end
+	-- Old save: the ids still start with a long addon name.
+	if ( ids ) then
+		foreach(ids, function(id)
+			local s, e, lead = strfind(id, "^(%a+)");
+			if ( lead and SIMPLESAVE_ABBREV[lead] ) then
+				changed = 1;
+			end
+		end);
+	end
+	return changed;
+end
+
+-- Chat and screen message when a save fails, with what takes the space.
+function SimpleSave_Fail(reason)
+	SimpleSave_LastError = reason;
+	SimpleSave_FailTime = GetTime();
+	local text = reason;
+	if ( strfind(reason, "^too much data") ) then
+		local list = SimpleSave_UsageList();
+		local top = "";
+		local i;
+		for i = 1, min(3, getn(list)) do
+			if ( i > 1 ) then
+				top = top..", ";
+			end
+			top = top..list[i][1].." "..list[i][2];
+		end
+		text = reason.." - the biggest users (keys): "..top..". /ssave chars shows the characters, /ssave forget <name> removes one";
+	end
+	SimpleSave_Print("|cffff4040could not save: "..text.."|r");
+	if ( UIErrorsFrame ) then
+		UIErrorsFrame:AddMessage("SimpleSave: your settings could NOT be saved ("..reason..")", 1.0, 0.1, 0.1, 1.0, UIERRORS_HOLD_TIME or 5);
+	end
+end
+
+-- Warns once per session when the space is nearly used up.
+function SimpleSave_WarnFull()
+	local percent = floor(SimpleSave_Chunks * 100 / SIMPLESAVE_MAX_CHUNKS + 0.5);
+	if ( percent >= 85 and not SimpleSave_WarnedFull ) then
+		SimpleSave_WarnedFull = 1;
+		SimpleSave_Print("|cffffa040the save is "..percent.."% full.|r /ssave shows what takes the space.");
+	end
+end
+
+
+--------------------------------------------------------------------------------
 -- Writing
 --------------------------------------------------------------------------------
 
@@ -898,7 +1155,7 @@ function SimpleSave_WriteKeys()
 		return nil;
 	end
 	if ( count - 1 > SIMPLESAVE_MAX_CHUNKS ) then
-		SimpleSave_LastError = "too much data ("..length.." characters)";
+		SimpleSave_LastError = "too much data ("..length.." characters, "..(count - 1).." of "..SIMPLESAVE_MAX_CHUNKS.." keys)";
 		return nil;
 	end
 	-- Other addons (SimpleMacros) skip the key binding events of this write.
@@ -980,7 +1237,7 @@ function SimpleSave_Flush()
 			SimpleSave_LastWrite = GetTime();
 		end
 	else
-		SimpleSave_Print("|cffff4040could not save: "..(SimpleSave_LastError or "unknown error").."|r");
+		SimpleSave_Fail(SimpleSave_LastError or "unknown error");
 	end
 end
 
@@ -1017,11 +1274,11 @@ function SimpleSave_StartJob()
 	local records, checksum, length = SimpleSave_FastRecords();
 	local wanted, count = SimpleSave_BuildKeys(records, checksum);
 	if ( not wanted ) then
-		SimpleSave_Print("|cffff4040could not save: "..(count or "unknown error").."|r");
+		SimpleSave_Fail(count or "unknown error");
 		return;
 	end
 	if ( count - 1 > SIMPLESAVE_MAX_CHUNKS ) then
-		SimpleSave_Print("|cffff4040could not save: too much data ("..length.." characters)|r");
+		SimpleSave_Fail("too much data ("..length.." characters, "..(count - 1).." of "..SIMPLESAVE_MAX_CHUNKS.." keys)");
 		return;
 	end
 	SimpleSave_Job = { step = "read", command = 1, have = {}, wanted = wanted, count = count, bytes = length };
@@ -1107,11 +1364,11 @@ function SimpleSave_JobStep()
 				SimpleSave_Chunks = job.count - 1;
 				SimpleSave_Bytes = job.bytes;
 				SimpleSave_LastError = nil;
+				SimpleSave_WarnFull();
 				job.step = "save";
 			else
 				SimpleSave_Job = nil;
-				SimpleSave_LastError = "the client did not keep all keys ("..job.count.." keys)";
-				SimpleSave_Print("|cffff4040could not save: "..SimpleSave_LastError.."|r");
+				SimpleSave_Fail("the client did not keep all keys ("..job.count.." keys)");
 			end
 		end
 	elseif ( job.step == "save" ) then
@@ -1302,6 +1559,7 @@ function SimpleSave_OnLoad()
 	SlashCmdList["SIMPLESAVE"] = SimpleSave_Slash;
 	SLASH_SIMPLESAVE1 = "/ssave";
 	SLASH_SIMPLESAVE2 = "/simplesave";
+	SLASH_SIMPLESAVE3 = "/ss";
 end
 
 -- The ADDONDATA commands are hidden, so the visible ADDONKEY1 from the same
@@ -1581,16 +1839,55 @@ function SimpleSave_Slash(msg)
 		SimpleSave_ShowExport();
 	elseif ( msg == "import" or msg == "restore" ) then
 		SimpleSave_ShowImport();
-	elseif ( msg == "reset" ) then
-		SimpleSave_Data = {};
-		SimpleSave_Blocked = nil;
-		SimpleSave_RawStream = nil;
-		SimpleSave_Loaded = 1;
-		SimpleSave_Flush();
-		SimpleSave_Print("all saved addon data was removed. Type /reload.");
+	elseif ( msg == "reset" or msg == "clear" or msg == "clear confirm" or msg == "reset confirm" ) then
+		-- Removes everything: asked once, answered within 30 seconds.
+		if ( msg == "reset" or msg == "clear" ) then
+			SimpleSave_ClearAsked = GetTime();
+			SimpleSave_Print("|cffff4040this removes ALL saved data of ALL Simple AddOns (settings, macros, positions, builds, every character).|r Type /ss clear confirm within 30 seconds to do it. /ssave export makes a backup first.");
+		elseif ( not SimpleSave_ClearAsked or GetTime() - SimpleSave_ClearAsked > 30 ) then
+			SimpleSave_Print("type /ss clear first.");
+		else
+			SimpleSave_ClearAsked = nil;
+			SimpleSave_Data = {};
+			SimpleSave_Blocked = nil;
+			SimpleSave_RawStream = nil;
+			SimpleSave_Loaded = 1;
+			SimpleSave_Flush();
+			SimpleSave_Print("all saved addon data was removed. Type /reload.");
+		end
 	elseif ( msg == "save" ) then
 		SimpleSave_Flush();
-		SimpleSave_Print("saved.");
+		if ( not SimpleSave_LastError ) then
+			SimpleSave_Print("saved.");
+		end
+	elseif ( msg == "chars" or msg == "characters" ) then
+		local list = SimpleSave_CharList();
+		if ( getn(list) == 0 ) then
+			SimpleSave_Print("no character has saved data.");
+		else
+			local i;
+			for i = 1, getn(list) do
+				SimpleSave_Print("  "..list[i][1]..(list[i][1] == UnitName("player") and " (this character)" or "").." - "..list[i][2].." keys, "..list[i][3].." values");
+			end
+			SimpleSave_Print("/ssave forget <name> removes one character's data, /ssave forget all removes every character except this one. Make a backup first with /ssave export.");
+		end
+	elseif ( strsub(msg, 1, 6) == "forget" ) then
+		local who = gsub(strsub(msg, 7), "^%s+", "");
+		who = gsub(who, "%s+$", "");
+		if ( not SimpleSave_Loaded or SimpleSave_Blocked ) then
+			SimpleSave_Print("the save is not ready.");
+		elseif ( who == "" ) then
+			SimpleSave_Print("type /ssave forget <character name>, or /ssave forget all.");
+		elseif ( who == "all" ) then
+			SimpleSave_Print(SimpleSave_ForgetChars(nil).." values of other characters removed. They are written to the file within a few seconds.");
+		else
+			local count = SimpleSave_ForgetChars(who);
+			if ( count == 0 ) then
+				SimpleSave_Print("no saved data for '"..who.."'. /ssave chars lists the characters.");
+			else
+				SimpleSave_Print(count.." values of "..who.." removed. They are written to the file within a few seconds.");
+			end
+		end
 	else
 		SimpleSave_Print("version "..SIMPLESAVE_VERSION);
 		if ( SimpleSave_BindingsMissing ) then
@@ -1601,16 +1898,16 @@ function SimpleSave_Slash(msg)
 		elseif ( not SimpleSave_Loaded ) then
 			SimpleSave_Print("status: not loaded yet");
 		else
-			SimpleSave_Print("status: OK, "..SimpleSave_Bytes.." characters in "..SimpleSave_Chunks.." keys (bindings.wtf)");
+			SimpleSave_Print("status: OK, "..SimpleSave_Bytes.." characters in "..SimpleSave_Chunks.." of "..SIMPLESAVE_MAX_CHUNKS.." keys ("..floor(SimpleSave_Chunks * 100 / SIMPLESAVE_MAX_CHUNKS + 0.5).."%) in bindings.wtf");
 		end
 		if ( SimpleSave_LastError ) then
 			SimpleSave_Print("|cffff4040last error: "..SimpleSave_LastError.."|r");
 		end
-		local list = SimpleSave_CountAddons();
+		local list = SimpleSave_UsageList();
 		local i;
 		for i = 1, getn(list) do
-			SimpleSave_Print("  "..list[i]);
+			SimpleSave_Print("  "..list[i][1].." - "..list[i][2].." keys");
 		end
-		SimpleSave_Print("/ssave export = backup, /ssave import = restore, /ssave reset = remove all, /ssave test = capacity test");
+		SimpleSave_Print("/ssave chars = characters, /ssave forget <name> = remove a character's data, /ssave export = backup, /ssave import = restore, /ssave reset = remove all, /ssave test = capacity test");
 	end
 end

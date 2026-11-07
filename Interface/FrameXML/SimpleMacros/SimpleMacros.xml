@@ -112,6 +112,17 @@
 			</EdgeSize>
 		</Backdrop>
 		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="SimpleMacrosVersion" inherits="GameFontDisableSmall" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT">
+							<Offset>
+								<AbsDimension x="-6" y="4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
 			<Layer level="ARTWORK">
 				<Texture name="SimpleMacrosFrameHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
 					<Size>
@@ -1037,6 +1048,8 @@
 		</Frames>
 		<Scripts>
 			<OnShow>
+				SimpleMacrosVersion:SetText("v"..SIMPLEMACROS_VERSION);
+				SimpleMacrosVersion:SetAlpha(0.35);
 				SimpleMacrosFrame_OnShow();
 			</OnShow>
 			<OnHide>

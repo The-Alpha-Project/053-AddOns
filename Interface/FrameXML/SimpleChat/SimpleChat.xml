@@ -566,6 +566,17 @@
 			</EdgeSize>
 		</Backdrop>
 		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="SimpleChatSettingsVersion" inherits="GameFontDisableSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset>
+								<AbsDimension x="6" y="4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
 			<Layer level="ARTWORK">
 				<Texture file="Interface\DialogFrame\UI-DialogBox-Header">
 					<Size>
@@ -1065,6 +1076,10 @@
 			</Button>
 		</Frames>
 		<Scripts>
+			<OnShow>
+				SimpleChatSettingsVersion:SetText("v"..SIMPLECHAT_VERSION);
+				SimpleChatSettingsVersion:SetAlpha(0.35);
+			</OnShow>
 			<OnUpdate>
 				SimpleChat_Settings_OnUpdate();
 			</OnUpdate>

@@ -43,6 +43,25 @@ SimpleQoL_Orig_QuestLog_Update = QuestLog_Update;
 function QuestLog_Update()
 	SimpleQoL_Orig_QuestLog_Update();
 	SimpleQoL_UpdateQuestChecks();
+	SimpleQoL_QuestCompleteTags();
+end
+
+-- " (Complete)" after the name of a finished quest in the quest log.
+function SimpleQoL_QuestCompleteTags()
+	local i;
+	local numEntries = GetNumQuestLogEntries();
+	local offset = SimpleQoL_QuestOffset();
+	for i = 1, (QUESTS_DISPLAYED or 6) do
+		local button = getglobal("QuestLogTitle"..i);
+		local index = i + offset;
+		if ( button and button:IsVisible() and index <= numEntries ) then
+			local title, level, tag, isHeader, isCollapsed, isComplete = GetQuestLogTitle(index);
+			local text = button:GetText();
+			if ( title and not isHeader and isComplete == 1 and text and not strfind(text, "(Complete)", 1, 1) ) then
+				button:SetText(text.." (Complete)");
+			end
+		end
+	end
 end
 
 function SimpleQoL_QuestCheck_OnClick()
@@ -1042,10 +1061,10 @@ SimpleQoL_ExtraTime = 0;
 
 --------------------------------------------------------------------------------
 -- With AlphaUI: its Class Portraits start off, so the player and target show
--- their normal portraits. Done with AlphaUI's own DisableModule, once per
--- character when AlphaUI keeps its settings on the server (you can turn it
--- back on in AlphaUI). When AlphaUI only keeps settings for the session, it
--- is done at every login.
+-- their normal portraits. Done with AlphaUI's own DisableModule at login on
+-- every character, as long as the setting "Turn off AlphaUI Class Portraits
+-- and Clock" is on (it is by default and costs one saved value at most).
+-- Nothing is saved per character.
 --------------------------------------------------------------------------------
 
 SimpleQoL_PortraitDone = nil;
@@ -1059,17 +1078,18 @@ function SimpleQoL_AlphaPortraitDefault()
 	if ( SimpleSave_IsLoaded and not SimpleSave_IsLoaded() ) then
 		return;
 	end
+	if ( not SimpleQoL_On["auioff"] ) then
+		SimpleQoL_PortraitDone = 1;
+		return;
+	end
 	local api = Main.API;
 	if ( api and api.remoteLoaded ) then
-		-- Settings from the server are read: once per character.
+		-- Settings from the server are read: turned off once, if still on.
 		SimpleQoL_PortraitDone = 1;
-		if ( SimpleSave_GetChar and SimpleSave_GetChar("SimpleQoL", "AUIPortraits") ) then
+		if ( Main.GetConfiguredModuleEnabled and Main.GetConfiguredModuleEnabled("class_portraits") == false ) then
 			return;
 		end
 		Main.DisableModule("class_portraits");
-		if ( SimpleSave_SetChar ) then
-			SimpleSave_SetChar("SimpleQoL", "AUIPortraits", 1);
-		end
 		return;
 	end
 	-- Session only (or not read yet): off for this session; keep watching in
@@ -1083,8 +1103,8 @@ function SimpleQoL_AlphaPortraitDefault()
 	end
 end
 
--- AlphaUI's clock (a framed window) starts off, once per character; our
--- Clock setting is the discreet one.
+-- AlphaUI's clock (a framed window) starts off at login; our Clock setting
+-- is the discreet one.
 SimpleQoL_ClockDone = nil;
 SimpleQoL_ClockSession = nil;
 
@@ -1096,16 +1116,17 @@ function SimpleQoL_AlphaClockDefault()
 	if ( SimpleSave_IsLoaded and not SimpleSave_IsLoaded() ) then
 		return;
 	end
+	if ( not SimpleQoL_On["auioff"] ) then
+		SimpleQoL_ClockDone = 1;
+		return;
+	end
 	local api = Main.API;
 	if ( api and api.remoteLoaded ) then
 		SimpleQoL_ClockDone = 1;
-		if ( SimpleSave_GetChar and SimpleSave_GetChar("SimpleQoL", "AUIClock") ) then
+		if ( Main.GetConfiguredModuleEnabled and Main.GetConfiguredModuleEnabled("clock") == false ) then
 			return;
 		end
 		Main.DisableModule("clock");
-		if ( SimpleSave_SetChar ) then
-			SimpleSave_SetChar("SimpleQoL", "AUIClock", 1);
-		end
 		return;
 	end
 	if ( not SimpleQoL_ClockSession ) then
@@ -1115,6 +1136,14 @@ function SimpleQoL_AlphaClockDefault()
 	if ( api and api.configUnsupported ) then
 		SimpleQoL_ClockDone = 1;
 	end
+end
+
+-- The setting was turned on in the window: do it once more now.
+function SimpleQoL_AlphaAgain()
+	SimpleQoL_PortraitDone = nil;
+	SimpleQoL_PortraitSession = nil;
+	SimpleQoL_ClockDone = nil;
+	SimpleQoL_ClockSession = nil;
 end
 
 function SimpleQoL_Extra_OnUpdate()

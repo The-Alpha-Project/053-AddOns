@@ -1271,7 +1271,21 @@ function SimpleQoL_BuildStore(list)
 	if ( text == "" ) then
 		text = nil;
 	end
+	local old = SimpleSave_Get("SimpleQoL", SimpleQoL_BuildKey());
 	SimpleSave_Set("SimpleQoL", SimpleQoL_BuildKey(), text);
+	-- Check that it was kept, and that it fits in the save.
+	if ( text and SimpleSave_Get("SimpleQoL", SimpleQoL_BuildKey()) ~= text ) then
+		UIErrorsFrame:AddMessage("The build could not be stored.", 1.0, 0.1, 0.1, 1.0, UIERRORS_HOLD_TIME);
+		SimpleQoL_Print("|cffff4040the build could not be stored.|r");
+		return nil;
+	end
+	if ( text and SimpleSave_KeysNeeded and SimpleSave_KeysNeeded() > (SIMPLESAVE_MAX_CHUNKS or 999) ) then
+		SimpleSave_Set("SimpleQoL", SimpleQoL_BuildKey(), old);
+		UIErrorsFrame:AddMessage("Save is full: the build was not saved. See /ssave.", 1.0, 0.1, 0.1, 1.0, UIERRORS_HOLD_TIME);
+		SimpleQoL_Print("|cffff4040the build was not saved: the save is full.|r Type /ssave to see what uses the space, /ssave forget <name> removes old characters.");
+		return nil;
+	end
+	return 1;
 end
 
 -- Each talent's highest rank, learned or picked.
@@ -1363,7 +1377,9 @@ function SimpleQoL_TalentCalc_SaveConfirm()
 		slot = getn(list) + 1;
 	end
 	list[slot] = { name = name, talents = talents };
-	SimpleQoL_BuildStore(list);
+	if ( not SimpleQoL_BuildStore(list) ) then
+		return;
+	end
 	SimpleQoLTalentCalcSaveName:ClearFocus();
 	SimpleQoLTalentCalcSaveBox:Hide();
 	SimpleQoL_Print("Build saved: "..name);
@@ -1417,6 +1433,7 @@ end
 function SimpleQoL_TalentCalc_LoadBuild(id)
 	local build = SimpleQoL_BuildList()[id];
 	if ( not build ) then
+		SimpleQoL_Print("|cffff4040that build was not found.|r");
 		return;
 	end
 	local want = {};

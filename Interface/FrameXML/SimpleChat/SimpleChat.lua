@@ -45,7 +45,7 @@ end
 --     box and the stock buttons are anchored to it and follow.
 --------------------------------------------------------------------------------
 
-SIMPLECHAT_VERSION = "1.64";
+SIMPLECHAT_VERSION = "1.66";
 SIMPLECHAT_NUM_TABS = 4;
 SIMPLECHAT_COMBAT_TAB = 4;          -- the Combat Log tab: gets the stock combat log lines
 SIMPLECHAT_DEFAULT_NAMES = { "General", "Whispers", "Guild", "Combat Log" };

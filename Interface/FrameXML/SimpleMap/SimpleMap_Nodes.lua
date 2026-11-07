@@ -119,7 +119,41 @@ function SimpleMap_NodeSave(map)
 		end
 		text = text..e[1].."."..floor(e[2] * 10000 + 0.5).."."..floor(e[3] * 10000 + 0.5).."."..e[4];
 	end
+	if ( text == "" ) then
+		text = nil;
+	end
 	SimpleSave_Set("SimpleMap", "N"..map, text);
+end
+
+-- Shift-click on a remembered ore, herb or chest: it is forgotten (also in
+-- the save).
+function SimpleMap_NodeClick(btn)
+	local b = btn or this;
+	local e = b and b.entry;
+	if ( not e or not IsShiftKeyDown or not IsShiftKeyDown() ) then
+		return;
+	end
+	if ( not btn and SimpleMap_ShiftStamp and GetTime() - SimpleMap_ShiftStamp < 0.6 ) then
+		return;
+	end
+	SimpleMap_ShiftStamp = GetTime();
+	SimpleMap_MarkerShiftCleanup();
+	local map = SimpleMap_ShownMap;
+	if ( not map ) then
+		return;
+	end
+	local list = SimpleMap_NodeList(map);
+	local i;
+	for i = 1, getn(list) do
+		if ( list[i] == e ) then
+			tremove(list, i);
+			break
+		end
+	end
+	SimpleMap_NodeSave(map);
+	SimpleMap_NodeStamp = SimpleMap_NodeStamp + 1;
+	GameTooltip:Hide();
+	ChatFrame:AddMessage("SimpleMap: removed "..e[4].." from the map and the save.", 1.0, 0.82, 0.0);
 end
 
 function SimpleMap_NodeAdd(kind, name, map, x, y)
@@ -322,5 +356,6 @@ function SimpleMap_NodeOnEnter()
 	SimpleTooltip_SetOwner(this);
 	GameTooltip:SetText(e[4], kind[2], kind[3], kind[4]);
 	GameTooltip:AddLine("|cffffffff"..kind[1].." (gathered)|r");
+	GameTooltip:AddLine("|cff808080Shift-click: remove|r");
 	GameTooltip:Show();
 end

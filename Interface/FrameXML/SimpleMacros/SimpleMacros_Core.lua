@@ -8,7 +8,7 @@
 --   * no non-ASCII characters anywhere in the files
 --------------------------------------------------------------------------------
 
-SIMPLEMACROS_VERSION = "2.33";
+SIMPLEMACROS_VERSION = "2.35";
 
 SIMPLEMACROS_MAX_MACROS = 18;          -- per tab, same as 1.12
 SIMPLEMACROS_MAX_BODY = 511;           -- characters per macro (1.12 had 255)
@@ -154,6 +154,9 @@ function SimpleMacros_SetMacro(scope, slot, name, icon, body)
 
 	SimpleMacros_Macros[scope][slot] = { name = name, icon = icon, body = body, ref = scope..slot };
 	SimpleMacros_Storage_SaveMacro(scope, slot);
+	if ( SimpleSave_Print and SimpleMacros_StorageLoaded ) then
+		SimpleSave_Print("Macro saved.");
+	end
 	SimpleMacros_OnMacrosChanged();
 end
 
@@ -161,6 +164,9 @@ function SimpleMacros_DeleteMacro(scope, slot)
 	local ref = SimpleMacros_MakeRef(scope, slot);
 	SimpleMacros_Macros[scope][slot] = nil;
 	SimpleMacros_Storage_DeleteMacro(scope, slot);
+	if ( SimpleSave_Print and SimpleMacros_StorageLoaded ) then
+		SimpleSave_Print("Macro removed.");
+	end
 	-- Gone from the action buttons as well.
 	SimpleMacros_RemoveRefFromSlots(ref);
 	SimpleMacros_OnMacrosChanged();

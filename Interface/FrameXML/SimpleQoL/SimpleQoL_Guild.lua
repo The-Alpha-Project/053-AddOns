@@ -38,6 +38,140 @@ SimpleQoL_GuildFiltered = {};
 SimpleQoL_GuildSelected = nil;
 SimpleQoL_GuildPending = nil;      -- GetTime() when a roster change was asked for
 
+-- The roster's levels can be old. When the guild tab is opened one quiet
+-- "who" for the guild gives the real level of everybody online (kept in
+-- memory only, never saved). No chat output: the answer only goes to the
+-- Who list of the client.
+SIMPLEQOL_GUILD_WHO_GAP = 30;        -- seconds between two questions
+SIMPLEQOL_GUILD_WHO_WAIT = 6;        -- seconds an answer is waited for
+SimpleQoL_GuildLevels = {};          -- name -> level from the last answer
+SimpleQoL_GuildWhoTime = -1000;
+SimpleQoL_GuildWhoWait = nil;
+SimpleQoL_GuildWhoName = nil;
+SimpleQoL_GuildWhoMuteUntil = 0;     -- until then our own "who" lines are kept out of the chat
+
+-- The client prints a "who" answer in the chat as system lines: the lines of
+-- our guild and the "N players total" line are dropped while we wait.
+function SimpleQoL_GuildWhoMuted(text)
+	if ( not text or GetTime() > SimpleQoL_GuildWhoMuteUntil ) then
+		return nil;
+	end
+	if ( SimpleQoL_GuildWhoName and strfind(strlower(text), "<"..SimpleQoL_GuildWhoName..">", 1, 1) and strfind(text, ": ", 1, 1) ) then
+		return 1;
+	end
+	if ( strfind(text, "^%d+ players? total$") ) then
+		return 1;
+	end
+	return nil;
+end
+
+SimpleQoL_Orig_GuildWho_ChatOnEvent = ChatFrame_OnEvent;
+if ( SimpleQoL_Orig_GuildWho_ChatOnEvent ) then
+	function ChatFrame_OnEvent(event)
+		if ( event == "CHAT_MSG_SYSTEM" and SimpleQoL_GuildWhoMuted(arg1) ) then
+			return;
+		end
+		SimpleQoL_Orig_GuildWho_ChatOnEvent(event);
+	end
+end
+
+function SimpleQoL_GuildWhoAsk()
+	if ( not SendWho or not GetNumWhoResults or not GetWhoInfo ) then
+		return;
+	end
+	local guildName = GetGuildInfo and GetGuildInfo("player");
+	if ( not guildName or guildName == "" ) then
+		guildName = SimpleQoL_Guild and SimpleQoL_Guild.name;
+	end
+	if ( (not guildName or guildName == "") and Main and Main.API and Main.API.GetGuildRoster ) then
+		guildName = Main.API:GetGuildRoster().guildName;
+	end
+	if ( not guildName or guildName == "" or strfind(guildName, "\"", 1, 1) ) then
+		return;
+	end
+	if ( GetTime() - SimpleQoL_GuildWhoTime < SIMPLEQOL_GUILD_WHO_GAP ) then
+		return;
+	end
+	SimpleQoL_GuildWhoTime = GetTime();
+	SimpleQoL_GuildWhoWait = GetTime();
+	SimpleQoL_GuildWhoMuteUntil = GetTime() + SIMPLEQOL_GUILD_WHO_WAIT + 1;
+	SimpleQoL_GuildWhoName = strlower(guildName);
+	SendWho((WHO_TAG_GUILD or "g-").."\""..guildName.."\"");
+end
+
+-- WHO_LIST_UPDATE: take the answer to our question (not anybody else's).
+function SimpleQoL_GuildWhoAnswer()
+	if ( not SimpleQoL_GuildWhoWait ) then
+		return;
+	end
+	local count = GetNumWhoResults();
+	local i, found;
+	local levels = {};
+	for i = 1, count do
+		local name, guild, level = GetWhoInfo(i);
+		if ( name and guild and level and strlower(guild) == SimpleQoL_GuildWhoName ) then
+			levels[name] = level;
+			found = 1;
+		end
+	end
+	if ( found ) then
+		SimpleQoL_GuildLevels = levels;
+		SimpleQoL_GuildWhoWait = nil;
+		-- The "total" line can come a moment after the list.
+		SimpleQoL_GuildWhoMuteUntil = GetTime() + 1.5;
+		if ( SimpleQoL_AUIWhoHooked ) then
+			-- AlphaUI's guild tab: patch its roster and let it redraw.
+			SimpleQoL_AUIPatch = 1;
+			Main.API:GetGuildRoster().loaded = 1;
+			Main.API:GetGuildRoster();
+		elseif ( SimpleQoLGuildFrame and SimpleQoLGuildFrame:IsVisible() ) then
+			SimpleQoL_GuildRefresh();
+		end
+	end
+end
+
+-- AlphaUI's guild tab: the same levels are put into its own roster list.
+SimpleQoL_AUIWhoHooked = nil;
+SimpleQoL_AUIPatch = nil;
+
+function SimpleQoL_AUIGuildPatch(roster)
+	if ( not roster or not roster.members ) then
+		return;
+	end
+	local i;
+	for i = 1, getn(roster.members) do
+		local m = roster.members[i];
+		if ( m and m.name ) then
+			m.level = SimpleQoL_GuildRealLevel(m.name, m.online, m.level);
+		end
+	end
+end
+
+function SimpleQoL_AUIGuildWhoHook()
+	if ( SimpleQoL_AUIWhoHooked or not SimpleQoL_AlphaUIGuild() ) then
+		return;
+	end
+	if ( not (Main and Main.API and Main.API.GetGuildRoster and MainGuildFrame_OnShow) ) then
+		return;
+	end
+	SimpleQoL_AUIWhoHooked = 1;
+	local origRoster = Main.API.GetGuildRoster;
+	-- Only when new roster data came (or new levels): not on every call.
+	Main.API.GetGuildRoster = function(self)
+		local roster = origRoster(self);
+		if ( roster and (roster.loaded or SimpleQoL_AUIPatch) ) then
+			SimpleQoL_AUIPatch = nil;
+			SimpleQoL_AUIGuildPatch(roster);
+		end
+		return roster;
+	end;
+	local origShow = MainGuildFrame_OnShow;
+	MainGuildFrame_OnShow = function()
+		SimpleQoL_GuildWhoAsk();
+		origShow();
+	end;
+end
+
 -- AlphaUI's guild tab is used when AlphaUI is installed and its module is on.
 function SimpleQoL_AlphaUIGuild()
 	if ( not getglobal("MainGuildFrame") ) then
@@ -57,6 +191,29 @@ function SimpleQoL_GuildRankName(rank)
 	return SIMPLEQOL_RANK_NAMES[rank] or ("Rank "..rank);
 end
 
+-- The best known level of a member: you and your party first, then the
+-- guild "who", else the level the server sent.
+function SimpleQoL_GuildRealLevel(name, online, level)
+	if ( online and SimpleQoL_GuildLevels[name] ) then
+		level = SimpleQoL_GuildLevels[name];
+	end
+	if ( name == UnitName("player") ) then
+		return UnitLevel("player") or level;
+	end
+	if ( online and GetNumPartyMembers and GetNumPartyMembers() > 0 ) then
+		local p;
+		for p = 1, GetNumPartyMembers() do
+			if ( UnitName("party"..p) == name ) then
+				local l = UnitLevel("party"..p);
+				if ( l and l > 0 ) then
+					level = l;
+				end
+			end
+		end
+	end
+	return level;
+end
+
 -- Roster members as tables { name, level, classId, rank, online }.
 function SimpleQoL_GuildMembers()
 	local list = {};
@@ -65,7 +222,9 @@ function SimpleQoL_GuildMembers()
 	if ( members ) then
 		for i = 1, getn(members) do
 			local m = members[i];
-			tinsert(list, { name = m[1], level = m[2], classId = m[3], rank = m[4], online = m[5] });
+			-- The server roster can be old.
+			local level = SimpleQoL_GuildRealLevel(m[1], m[5], m[2]);
+			tinsert(list, { name = m[1], level = level, classId = m[3], rank = m[4], online = m[5] });
 		end
 	end
 	return list;
@@ -440,6 +599,7 @@ function SimpleQoLGuildFrame_OnLoad()
 		this:EnableMouseWheel(1);
 	end
 	SimpleQoLGuildFrameOnlineToggleText:SetText("Show Offline Members");
+	this:RegisterEvent("WHO_LIST_UPDATE");
 	this:Hide();
 end
 
@@ -447,6 +607,7 @@ function SimpleQoLGuildFrame_OnShow()
 	SimpleQoL_GuildScroll = 0;
 	SimpleQoL_GuildSelected = nil;
 	SimpleQoL_GuildPending = nil;
+	SimpleQoL_GuildWhoAsk();
 	SimpleQoL_GuildRequestSoon(0);
 	SimpleQoL_GuildRefresh();
 end
@@ -457,9 +618,16 @@ function SimpleQoLGuildFrame_OnHide()
 end
 
 function SimpleQoLGuildFrame_OnEvent(event)
+	if ( event == "WHO_LIST_UPDATE" ) then
+		SimpleQoL_GuildWhoAnswer();
+	end
 end
 
 function SimpleQoLGuildFrame_OnUpdate(elapsed)
+	-- No answer to the guild "who": stop waiting for it.
+	if ( SimpleQoL_GuildWhoWait and GetTime() - SimpleQoL_GuildWhoWait > SIMPLEQOL_GUILD_WHO_WAIT ) then
+		SimpleQoL_GuildWhoWait = nil;
+	end
 	-- No new roster after an action: enable the buttons again.
 	if ( SimpleQoL_GuildPending and GetTime() - SimpleQoL_GuildPending > SIMPLEQOL_GUILD_REFRESH_TIMEOUT ) then
 		SimpleQoL_GuildPending = nil;
@@ -471,6 +639,7 @@ end
 -- AlphaUI's Guild tab (FriendsFrameTab4) is shown even without a guild;
 -- hide it then, and show it again after joining one.
 function SimpleQoL_AlphaUIGuildTabCheck()
+	SimpleQoL_AUIGuildWhoHook();
 	if ( not SimpleQoL_AlphaUIGuild() or not FriendsFrame or not FriendsFrameTab4 or FriendsFrameTab4 == SimpleQoLGuildTab ) then
 		return;
 	end
@@ -500,6 +669,7 @@ end
 function SimpleQoL_SetupGuildTab()
 	if ( SimpleQoL_AlphaUIGuild() or not FriendsFrame or not FriendsFrame_Update ) then
 		SimpleQoLGuildTab:Hide();
+		SimpleQoL_AUIGuildWhoHook();
 		-- Check AlphaUI's tab whenever the Friends window is drawn.
 		if ( SimpleQoL_AlphaUIGuild() and FriendsFrame_Update and not SimpleQoL_AUIGuildHooked ) then
 			SimpleQoL_AUIGuildHooked = 1;

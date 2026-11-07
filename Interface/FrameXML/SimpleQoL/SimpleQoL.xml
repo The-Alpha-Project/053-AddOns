@@ -870,6 +870,17 @@
 			</EdgeSize>
 		</Backdrop>
 		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="SimpleQoLOptionsVersion" inherits="GameFontDisableSmall" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT">
+							<Offset>
+								<AbsDimension x="6" y="4"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
 			<Layer level="ARTWORK">
 				<Texture file="Interface\DialogFrame\UI-DialogBox-Header">
 					<Size>
@@ -2029,6 +2040,32 @@
 					</OnLeave>
 				</Scripts>
 			</CheckButton>
+			<CheckButton name="SimpleQoLOption40" inherits="OptionsCheckButtonTemplate" hidden="true">
+				<Size>
+					<AbsDimension x="26" y="26"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="20" y="-678"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Turn off AlphaUI Class Portraits and Clock");
+					</OnLoad>
+					<OnClick>
+						SimpleQoLOptions_Toggle(40);
+					</OnClick>
+					<OnEnter>
+						SimpleQoLOptions_OnEnter(40);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
 			<CheckButton name="SimpleQoLTrack1" inherits="OptionsCheckButtonTemplate" hidden="true">
 				<Size>
 					<AbsDimension x="26" y="26"/>
@@ -2649,6 +2686,8 @@
 				tinsert(UISpecialFrames, "SimpleQoLOptionsFrame");
 			</OnLoad>
 			<OnShow>
+				SimpleQoLOptionsVersion:SetText("v"..SIMPLEQOL_VERSION);
+				SimpleQoLOptionsVersion:SetAlpha(0.35);
 				SimpleQoLOptions_Update();
 			</OnShow>
 		</Scripts>
